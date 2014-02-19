@@ -13,4 +13,8 @@
 \description{
   make a US State <-> Abbreviation data.table
 }
+\seealso{
+  Other makers: \code{\link{makeAllData}},
+  \code{\link{makeMedianIncome}}
+}
 

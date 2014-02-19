@@ -4,21 +4,35 @@
 # this file contains functions to build RDatasets
 # from raw data
 
+#' make all datasets
+#'
+#' make all datasets.
+#' @family makers
+makeAllData <- function(){
+	cat('building all datasets')
+	if (!file.exists("~/git/EconData/data")){
+		cat('you may have to create a data directory in the root of the package\n')
+	}
+	makeAbbreviations()
+	makeMedianIncome()
+	return(NULL)
+}
 
 #' make a US State <-> Abbreviation data.table
 #'
 #' @param url
 #' @return NULL. saves data to packageroot/data
+#' @family makers
 makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.html"){
 
 	tab <- readHTMLTable(url)
 	states <- data.table(tab[[1]])
-	setnames(st,c("Abbreviation","FIPS","State"))
+	setnames(states,c("Abbreviation","FIPS","State"))
 	states[,State := as.character(State)]
 	states[,Abbreviation:= as.character(Abbreviation)]
 	states[,FIPS := as.numeric(as.character(FIPS))]
 
-	save(states,file="~/git/EconData/US_states.RData")
+	save(states,file="~/git/EconData/data/US_states.RData")
 
 	return(NULL)
 }
@@ -43,6 +57,7 @@ makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.ht
 #' 
 #' source: census bureau
 #' @return NULL. 
+#' @family makers
 #' @references \url{http://www.census.gov/hhes/www/income/data/historical/household/}
 makeMedianIncome <- function(){
 
@@ -86,8 +101,6 @@ makeMedianIncome <- function(){
 
 	# 2012 dollars
 	rows <- rows + 53
-
-	in2012 <- lapply(cols,function(x) read.xlsx(file="~/git/EconData/inst/extdata/H08_2012.xls",sheetIndex=1,rowIndex=rows,colIndex=x))
 
 	in2012 <- lapply(cols,function(x) read.xlsx(file="~/git/EconData/inst/extdata/census/H08_2012.xls",sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(in2012$inc) <- c("State",paste0(yrs))
