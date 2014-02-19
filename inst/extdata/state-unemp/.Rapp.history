@@ -1,0 +1,250 @@
+wz.ACS5[,ok := sum(num.bk == num.bk7+num.bk13)]
+wz.ACS5[,ok := num.bk == num.bk7+num.bk13]
+str(wz.ACS5)
+wz.ACS5[ok]
+wz.ACS5[ok==TRUE]
+wz.ACS5[ok==FALSE]
+wz.ACS5[ok==TRUE]
+summary(lm(bkrate ~ bkrate7 + bkrate13,wz.ACS5[ok==TRUE]))
+wz.ACS5[ok==TRUE, mean(bkrate7/bkrate)]
+wz.ACS5[ok==TRUE, mean(bkrate7/bkrate)]
+wz.ACS5[ok==TRUE, bkrate7/bkrate]
+wz.ACS5[ok==TRUE&bkrate>0, bkrate7/bkrate]
+wz.ACS5[ok==TRUE&bkrate>0, mean(bkrate7/bkrate)]
+wz.ACS5[ok==TRUE&bkrate>0, mean(bkrate13/bkrate)]
+load("~/git/Rdata/out/Filings-by-state.RData")
+ls()
+bk.rates
+head(bk.rates)
+str(bk.rates)
+library(xlsx)
+help(read.xlsx)
+for (i in 1:5) print(c(1,(i-1)*4*(2:5)))
+for (i in 1:5) print(c(1,(i-1)*4+(2:5)))
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-get-bk-rates.r")
+bk.rates
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-get-bk-rates.r")
+bk.rates
+load("out/pop2000s.RData")
+ls9)
+ls()
+pop
+d <- read.xlsx(file="raw/930PerCapitaFilings2010.xls",sheetIndex=1)
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 10
+d
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 0.1
+d
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 0.1
+d
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 0.1
+d
+rm(d)
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1)
+d
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1,colIndex=1:4)
+d
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 0.1
+save(pc.bkrates2010,file="out/pc-bkrates2010.RData")
+pc.bkrates2010 <- d
+save(pc.bkrates2010,file="out/pc-bkrates2010.RData")
+byage
+rm(list=ls())
+library(data.table)
+setwd("~/git/bankruptcy/data/")
+load("mitman-regs.RData")
+load("~/git/out/pr-bkrates2010.RData")
+load("~/git/Rdata/out/pr-bkrates2010.RData")
+load("~/git/Rdata/out/pc-bkrates2010.RData")
+ls()
+d <- data.table(pc.bkrates2010,key="State")
+d
+ex
+load("~/git/Rdata/out/states-abbrev.RData")
+ls()
+abbr
+key(abbr)
+pc.bkrates2010
+str(d)
+rm(list=ls(all=T))
+library(xlsx)
+setwd("~/git/RData")
+d <- read.xlsx(file="raw/930_PerCapitaFilings2010.xls",sheetIndex=1,colIndex=1:4)
+d
+str(d)
+d$State <- as.character(d$State)
+d
+d[ ,c(2,3,4)] <- d[ ,c(2,3,4)] * 0.1
+pc.bkrates2010 <- d
+save(pc.bkrates2010,file="out/pc-bkrates2010.RData")
+rm(list=ls())
+library(data.table)
+setwd("~/git/bankruptcy/data/")
+load("mitman-regs.RData")
+load("~/git/Rdata/out/pc-bkrates2010.RData")
+load("~/git/Rdata/out/states-abbrev.RData")
+d <- data.table(pc.bkrates2010)
+d
+d[,State := toupper(State)]
+d
+abbr
+setkey(d,State)
+setkey(abbr,State)
+d <- abbr[d]
+d
+d[,State := NULL]
+setnames(d,"Abbreviation","State")
+d
+key(ex)
+setkey(ex,State)
+d <- ex[d]
+d
+d <- d[complete.cases(d)]
+d
+d <- d[group==5]
+d
+av <- d[,lapply(.SD,mean),.SDcols=c("medinc","own.rate","hex.fraction","All","chapter7","chapter13")]
+av
+group5.pc.data <- d
+grooup5.pc.av <- d[,lapply(.SD,mean),.SDcols=c("medinc","own.rate","hex.fraction","All","chapter7","chapter13")]
+save(group5.pc.data,group5.pc.av,file="~/git/bankruptcy/data/group5-pc-data.RData")
+group5.pc.av <- d[,lapply(.SD,mean),.SDcols=c("medinc","own.rate","hex.fraction","All","chapter7","chapter13")]
+save(group5.pc.data,group5.pc.av,file="~/git/bankruptcy/data/group5-pc-data.RData")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-bk-def-moments.r")
+ls()
+d
+load("~/git/Rdata/out/pc-bkrates2010.RData")
+ls()
+pc.bkrates2010
+rm(list=ls())
+load("~/git/bankruptcy/data/group5-pc-data.RData")
+ls9)
+ls()
+group5.pc.av
+group5.pc.data
+load("~/git/Rdata/out/unemp.RData")
+ls()
+unemp
+group5.pc.av
+group5.pc.data
+ex
+load("mitman-regs.RData")
+ex
+unemp$long.month
+unemp$long.mnth
+names(unemp)
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-getunemp.r")
+ls()
+head(ydf)
+ydf               <- as.data.frame(yrz.all)
+ydf$year          <- rownames(ydf)
+rownames(ydf)     <- NULL
+ydf               <- data.table(ydf)
+m                 <- data.table(melt(ydf,id.vars="year"))
+m
+names(m)          <- c("Year","State","unemp.rate")
+setnames(m,c("Year","State","unemp.rate"))
+m
+ydf
+m
+setkey(m,State)
+load("~/git/Rdata/out/states-abbrev.RData")
+abbr
+m[,State := toupper(State)]
+setkey(m,State)
+m <- abbr[m]
+sekty(abbr,State)
+m <- abbr[m]
+sektey(abbr,State)
+m <- abbr[m]
+setkey(abbr,State)
+m <- abbr[m]
+m
+setnames(m,STATE,State,FIPS,Year,unemp.rate)
+setnames(m,c("STATE","State","FIPS","Year","unemp.rate"))
+m
+unemp <- list(long.yr=m,wide.yr=data.table(ydf),zoo.wide.yr=yrz.all,long.qtr=data.table(unemp.qtrly))
+save(unemp,file="~/git/Rdata/out/unemp.RData")
+rm(list=ls())
+library(data.table)
+load("~/git/bankruptcy/data/group5-pc-data.RData")
+load("~/git/Rdata/out/Ownership.RData")
+load("~/git/bankruptcy/data/bk-def-moments.RData")
+load("~/git/bankruptcy/data/mitman-regs.RData")
+load("~/git/Rdata/out/states-abbrev.RData")
+load("~/git/Rdata/out/unemp.RData")
+unemp$long.yr
+U <- unemp$long.yr
+key(U)
+load("~/git/bankruptcy/data/mitman-regs.RData")
+ex
+key(ex)
+setkey(ex,State)
+U <- ex[U]
+U
+U <- unemp$long.yr
+setkey(U,State)
+setkey(ex,State)
+U[ex]
+U <- U[ex]
+U
+U <- U[group==5]
+U
+U[year>2006,mean(unemp.rate)]
+U[Year>2006,mean(unemp.rate)]
+moms$unemp <- U[Year>2006,mean(unemp.rate) * 0.01]
+U[Year>2006,mean(unemp.rate) * 0.01]
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+moms
+mom.dt <- data.table(moment=names(moms),data=unlist(moms))
+mom.dt
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+mom.dt
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+mom.dt
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+mom.dt
+setkey(mom.dt,moment)
+save(mom.dt,params,file="~/git/bankruptcy/data/moments-params.RData")
+save(mom.dt,file="~/git/bankruptcy/data/moments-params.RData")
+save(mom.dt,file="~/git/bankruptcy/data/moments.RData")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-moments.r")
+mom.dt
+cut_interval(1:30,breaks,n=3)
+cut_interval(1:30,,n=3)
+cut_interval(1:30,n=3)
+cut_interval(1:30,n=3,labels=NULL)
+cut_interval(1:30,n=3,label=NULL)
+cut_interval(1:30,n=3,labels=paste0(1:3))
+cut(1:30,n=3,label=NULL)
+cut(1:30,breaks=c(10,20),labels=NULL)
+cut(1:30,breaks=c(0,10,20,31),labels=NULL)
+cut(1:30,breaks=c(0,10,20,31),labels=FALSE)
+cut(1:30,breaks=c(0,10,20,31),labels=paste(3:5))
+cut(1:30,breaks=c(0,10,20,31),labels=FALSE)
+paste0(c(40,50,60))
+rm(list=ls())
+library(bkPackage2)
+example(ComputeObjectiveFunction)
+example(ComputeSimulatedMoments)
+r2
+agg <- r2[,list(bkrate=mean(d %like% "file"),
+bkrate7=mean(d == "file7"),
+bkrate13=mean(d == "file13"),
+defrate=mean(d == "default"),
+own=mean(H)),by=list(ed)][,lapply(.SD,weighted.mean,w=c(p$prop.lo,1-p$prop.lo))]
+p = init.p()
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-funs.misc.r")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-funs.misc.r")
+agg
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-funs.misc.r")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-funs.misc.r")
+base::source("/tmp/r-plugin-florianoswald/Rsource-421-funs.misc.r")
+abin
+r2

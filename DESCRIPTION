@@ -1,0 +1,22 @@
+Package: EconData
+Type: Package
+Title: Economics Datasets for R
+Version: 1.0
+Date: 2014-02-19
+Author: Florian Oswald
+Maintainer: <florian.oswald@gmail.com>
+Description: This package ships with a suite of datasets that I needed in
+    economic research over the years. All of them are avaiable in the public
+    domain, but none of them is an easy to use format. I provide the raw data
+    as well as the functions that convert the data into a useable R dataset.
+License: GPL-3
+Depends:
+    data.table,
+    XML,
+    zoo,
+    xlsx,
+    reshape2
+Collate:
+    'makers.r'
+    'dataDoc.R'
+    'EconData-package.R'
