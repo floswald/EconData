@@ -6,35 +6,59 @@
 
 #' make all datasets
 #'
-#' make all datasets.
+#' @param root path/to/your/package/root
 #' @family makers
-makeAllData <- function(){
+makeAllData <- function(root="~/git/EconData"){
 	cat('building all datasets')
-	if (!file.exists("~/git/EconData/data")){
-		cat('you may have to create a data directory in the root of the package\n')
+	if (!file.exists(file.path(root,"data"))){
+		cat(sprintf("first you have to create a data directory at %s\n",file.path(root,"data")))
+		return(FALSE)
 	}
-	makeAbbreviations()
-	makeMedianIncome()
-	return(NULL)
+	makeAbbreviations(root)
+	makeMedianIncome(root)
+	return(TRUE)
 }
 
-#' make a US State <-> Abbreviation data.table
+#' Correspondance of US State with FIPS code, Census Region and Division 
 #'
-#' @param url
+#' produces a data.table with state names and FIPS 
+#' abbreviations. Also includes census region and division.
+#'
+#' you will most likely want to merge this table into some 
+#' dataset you come across and which is missing full state names,
+#' or abbreviations, or FIPS code etc.
+#'
+#' @param url http://www.epa.gov/enviro/html/codes/state.html
+#' @param root path/to/your/package/root
 #' @return NULL. saves data to packageroot/data
 #' @family makers
-makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.html"){
+makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.html",
+							  root="~/git/EconData"){
 
+	# get abbreviations
 	tab <- readHTMLTable(url)
 	states <- data.table(tab[[1]])
-	setnames(states,c("Abbreviation","FIPS","State"))
-	states[,State := as.character(State)]
+	setnames(states,c("Abbreviation","FIPS","STATE"))
+	states[,STATE := as.character(STATE)]
 	states[,Abbreviation:= as.character(Abbreviation)]
 	states[,FIPS := as.numeric(as.character(FIPS))]
+	setkey(states,FIPS)
 
-	save(states,file="~/git/EconData/data/US_states.RData")
+	st <- data.table(read.xlsx(file=file.path(root,"inst/extdata/census/state_geocodes_v2011.xls"),sheetIndex=2))
+	st[, c("Reg_ID","Div_ID","FIPS") := lapply(st[,list(Reg_ID,Div_ID,FIPS)], function(x) as.numeric(as.character(x)))]
+	st[, c("Region","Division","State") := lapply(st[,list(Region,Division,State)], function(x) as.character(x))]
 
-	return(NULL)
+	st[,State := NULL]
+
+	setkey(st,FIPS)
+
+	US_states <- st[states]
+	setnames(US_states,"Abbreviation","state")
+	setcolorder(US_states,c("FIPS","STATE","state","Reg_ID","Region","Div_ID","Division"))
+
+	save(US_states,file=file.path(root,"data/US_states.RData"))
+
+	return(US_states)
 }
 
 
@@ -57,9 +81,10 @@ makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.ht
 #' 
 #' source: census bureau
 #' @return NULL. 
+#' @param root path/to/your/package/root
 #' @family makers
 #' @references \url{http://www.census.gov/hhes/www/income/data/historical/household/}
-makeMedianIncome <- function(){
+makeMedianIncome <- function(root="~/git/EconData"){
 
 	yrs <- 2012:1984
 
@@ -71,7 +96,7 @@ makeMedianIncome <- function(){
 	# current dollars
 	rows <- 8:59
 
-	current <- lapply(cols,function(x) read.xlsx(file="~/git/EconData/inst/extdata/census/H08_2012.xls",sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	current <- lapply(cols,function(x) read.xlsx(file=file.path(root,"inst/extdata/census/H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(current$inc) <- c("State",paste0(yrs))
 	names(current$se) <- c("State",paste0(yrs))
 
@@ -102,7 +127,7 @@ makeMedianIncome <- function(){
 	# 2012 dollars
 	rows <- rows + 53
 
-	in2012 <- lapply(cols,function(x) read.xlsx(file="~/git/EconData/inst/extdata/census/H08_2012.xls",sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(root,"inst/extdata/census/H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(in2012$inc) <- c("State",paste0(yrs))
 	names(in2012$se) <- c("State",paste0(yrs))
 
@@ -129,7 +154,7 @@ makeMedianIncome <- function(){
 	
 	medinc.in2012 <- in2012
 
-	save(medinc.current,medinc.in2012,file="~/git/EconData/data/US_medinc.RData")
+	save(medinc.current,medinc.in2012,file=file.path(root,"data/US_medinc.RData"))
 	return(NULL)
 }
 

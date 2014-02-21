@@ -1,17 +1,26 @@
 \name{makeAbbreviations}
 \alias{makeAbbreviations}
-\title{make a US State <-> Abbreviation data.table}
+\title{Correspondance of US State with FIPS code, Census Region and Division}
 \usage{
-  makeAbbreviations(url = "http://www.epa.gov/enviro/html/codes/state.html")
+  makeAbbreviations(url = "http://www.epa.gov/enviro/html/codes/state.html",
+    root = "~/git/EconData")
 }
 \arguments{
-  \item{url}{}
+  \item{url}{http://www.epa.gov/enviro/html/codes/state.html}
+
+  \item{root}{path/to/your/package/root}
 }
 \value{
   NULL. saves data to packageroot/data
 }
 \description{
-  make a US State <-> Abbreviation data.table
+  produces a data.table with state names and FIPS
+  abbreviations. Also includes census region and division.
+}
+\details{
+  you will most likely want to merge this table into some
+  dataset you come across and which is missing full state
+  names, or abbreviations, or FIPS code etc.
 }
 \seealso{
   Other makers: \code{\link{makeAllData}},

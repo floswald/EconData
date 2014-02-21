@@ -2,10 +2,13 @@
 \alias{makeAllData}
 \title{make all datasets}
 \usage{
-  makeAllData()
+  makeAllData(root = "~/git/EconData")
+}
+\arguments{
+  \item{root}{path/to/your/package/root}
 }
 \description{
-  make all datasets.
+  make all datasets
 }
 \seealso{
   Other makers: \code{\link{makeAbbreviations}},

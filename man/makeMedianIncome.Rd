@@ -2,7 +2,10 @@
 \alias{makeMedianIncome}
 \title{make dataset of median income by state and year}
 \usage{
-  makeMedianIncome()
+  makeMedianIncome(root = "~/git/EconData")
+}
+\arguments{
+  \item{root}{path/to/your/package/root}
 }
 \value{
   NULL.
