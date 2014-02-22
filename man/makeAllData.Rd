@@ -12,6 +12,6 @@
 }
 \seealso{
   Other makers: \code{\link{makeAbbreviations}},
-  \code{\link{makeMedianIncome}}
+  \code{\link{makeFHFA}}, \code{\link{makeMedianIncome}}
 }
 

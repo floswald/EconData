@@ -9,13 +9,14 @@
 #' @param root path/to/your/package/root
 #' @family makers
 makeAllData <- function(root="~/git/EconData"){
-	cat('building all datasets')
+	cat('building all datasets\n')
 	if (!file.exists(file.path(root,"data"))){
 		cat(sprintf("first you have to create a data directory at %s\n",file.path(root,"data")))
 		return(FALSE)
 	}
-	makeAbbreviations(root)
-	makeMedianIncome(root)
+	makeAbbreviations(root=root)
+	makeMedianIncome(root=root)
+	makeFHFA(root=root)
 	return(TRUE)
 }
 
@@ -157,4 +158,49 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	save(medinc.current,medinc.in2012,file=file.path(root,"data/US_medinc.RData"))
 	return(NULL)
 }
+
+
+
+
+#' make FHFA expanded house price indices
+#' 
+#' downloads and builds FHFA 
+#' Expanded-Data Indexes (Estimated using 
+#' Enterprise, FHA, and Real Property County Recorder 
+#' Data Licensed from DataQuick). Data is quarterly.
+#'
+#' @return NULL. 
+#' @param fhfaStates URL to txt state level data
+#' @param fhfaCBSA URL to txt 50 larges MSA level data
+#' @param root path/to/your/package/root
+#' @family makers
+#' @references \url{http://www.fhfa.gov/Default.aspx?Page=87}
+makeFHFA <- function(fhfaStates="http://www.fhfa.gov/webfiles/25831/3q13hpists_expandeddata.txt",
+                     fhfaCBSA="http://www.fhfa.gov/webfiles/25833/3q13hpicbsa_expandeddata.txt",
+					 root="~/git/EconData"){
+
+	states <- list()
+	msa50  <- list()
+
+	states$qtr <- data.table(read.table(file=fhfaStates,sep="\t",header=TRUE))
+	msa50$qtr <- data.table(read.table(file=fhfaCBSA,sep="\t",header=TRUE))
+
+	states$yr <- states$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(state,yr)]
+	msa50$yr <- msa50$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(CBSA,Metropolitan_Area_Name,yr)]
+
+	# create date variable in qtr
+	states$qtr[, quarter := as.yearqtr(paste0(yr," Q",qtr))]
+	states$qtr[, Date    := as.Date(quarter)]
+	states$qtr[, c("yr","qtr") := NULL]
+	msa50$qtr[, quarter := as.yearqtr(paste0(yr," Q",qtr))]
+	msa50$qtr[, Date    := as.Date(quarter)]
+	msa50$qtr[, c("yr","qtr") := NULL]
+
+	save(msa50,file=file.path(root,"data/FHFA_msa50.RData"))
+	save(states,file=file.path(root,"data/FHFA_states.RData"))
+}
+	
+
+
+
 

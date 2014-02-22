@@ -29,6 +29,6 @@
 }
 \seealso{
   Other makers: \code{\link{makeAbbreviations}},
-  \code{\link{makeAllData}}
+  \code{\link{makeAllData}}, \code{\link{makeFHFA}}
 }
 

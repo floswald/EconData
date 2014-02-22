@@ -24,6 +24,6 @@
 }
 \seealso{
   Other makers: \code{\link{makeAllData}},
-  \code{\link{makeMedianIncome}}
+  \code{\link{makeFHFA}}, \code{\link{makeMedianIncome}}
 }
 

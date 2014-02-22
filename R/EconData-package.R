@@ -6,7 +6,7 @@
 #' domain, but none of them in an easy to use format. I provide the raw data
 #' as well as the functions that convert the data into a useable R dataset. 
 #'
-#' @import XML zoo xlsx data.table reshape2
+#' @import zoo xlsx data.table reshape2 XML
 #' @docType package
 #' @name EconData
 #' @author Florian Oswald <Florian.oswald@@gmail.com> 

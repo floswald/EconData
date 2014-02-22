@@ -12,11 +12,13 @@ Description: This package ships with a suite of datasets that I needed in
 License: GPL-3
 Depends:
     data.table,
-    XML,
     zoo,
+    XML,
     xlsx,
     reshape2
 Collate:
     'makers.r'
-    'dataDoc.R'
     'EconData-package.R'
+    'doc_FHFA_msa.r'
+    'doc_FHFA_states.r'
+    'doc_medinc.r'
