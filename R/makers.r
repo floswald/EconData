@@ -17,10 +17,13 @@ makeAllData <- function(root="~/git/EconData"){
 	makeAbbreviations(root=root)
 	makeMedianIncome(root=root)
 	makeFHFA(root=root)
+	makeLincolnHomeValues(root=root)
+	makeUS_coordinates(root=root)
+  makeUS_distance(root=root)
 	return(TRUE)
 }
 
-#' Correspondance of US State with FIPS code, Census Region and Division 
+#' makes Correspondance of US State with FIPS code, Census Region and Division 
 #'
 #' produces a data.table with state names and FIPS 
 #' abbreviations. Also includes census region and division.
@@ -196,10 +199,122 @@ makeFHFA <- function(fhfaStates="http://www.fhfa.gov/webfiles/25831/3q13hpists_e
 	msa50$qtr[, Date    := as.Date(quarter)]
 	msa50$qtr[, c("yr","qtr") := NULL]
 
-	save(msa50,file=file.path(root,"data/FHFA_msa50.RData"))
-	save(states,file=file.path(root,"data/FHFA_states.RData"))
+	# rename
+	FHFA.states <- states
+	FHFA.msa50 <- msa50
+
+	save(FHFA.msa50,file=file.path(root,"data/FHFA_msa50.RData"))
+	save(FHFA.states,file=file.path(root,"data/FHFA_states.RData"))
 }
 	
+
+
+
+
+#' make Lincoln Institute Home and Land Value Dataset
+#' 
+#' reads data from the Lincoln Institute xls file.
+#'
+#' @return NULL. 
+#' @param root path/to/your/package/root
+#' @family makers
+#' @references \url{https://www.lincolninst.edu/subcenters/land-values/}
+makeLincolnHomeValues <- function(root="~/git/EconData"){
+
+	d <- fread(input="~/git/EconData/inst/extdata/lincolninst/landdata-states-2013q1.csv",skip=1)
+	d[,qtr := as.yearqtr(Date)]
+	d[,Date := NULL]
+	setnames(d,c("State","Home.Value","Structure.Cost","Land.Value","Land.Share","Home.Price.Index","Land.Price.Index","qtr"))
+	warning("amounts in HomeValues are current dollars.")
+	HomeValues <- d
+	save(HomeValues,file=file.path(root,"data/HomeValues.RData"))
+}
+
+
+#' make several US inflation datasets
+#'
+#' saves cpi for all urban consumers 
+#' and housing cpi  to disk
+#' @family makers
+#' @references \url{http://research.stlouisfed.org/fred2/series/CPIAUCSL} 
+#'             \url{http://research.stlouisfed.org/fred2/series/CPIHOSSL} 
+#' download data from FRED with quantmod package
+makeCPIUS <- function(root="~/git/EconData"){
+
+	getSymbols('CPIAUCSL',src='FRED')
+	getSymbols('CPIHOSSL',src='FRED')
+
+	save(CPIAUCSL,file=file.path(root,"data/CPIAUCSL.RData"))
+	save(CPIHOSSL,file=file.path(root,"data/CPIHOSSL.RData"))
+
+}
+
+
+
+
+#' Haversine Distance function
+#'
+#' use the haversine formula to compute distance
+#' between 2 locations
+#'
+#' source: \url{http://www.r-bloggers.com/great-circle-distance-calculations-in-r/}
+gcd.hf <- function(long1, lat1, long2, lat2) {
+  R <- 6371 # Earth mean radius [km]
+  delta.long <- (long2 - long1)
+  delta.lat <- (lat2 - lat1)
+  a <- sin(delta.lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta.long/2)^2
+  c <- 2 * asin(min(1,sqrt(a)))
+  d = R * c
+  return(d) # Distance in km
+}
+
+#' make Coordinate of US State centers
+#'
+#' @references \url{http://staff.washington.edu/glynn/dist_matrix.pdf}
+#' @family makers
+makeUS_coordinates <- function(root="~/git/EconData"){
+	coordStates <- read.table("http://staff.washington.edu/glynn/state.data",header=FALSE)
+	names(coordStates) <- c("state","FIPS","lat","long")
+	coordStates$state <- as.character(coordStates$state)
+	
+	save(coordStates,file=file.path(root,"data/coordStates.RData"))
+
+}
+
+#' make Distance between US state centers
+#'
+#' @family makers
+makeUS_distance <- function(root="~/git/EconData"){
+
+	data(coordStates,package="EconData")
+	cSt <- coordStates
+
+	n <- nrow(cSt)
+
+	m <- matrix(0,n,n)
+
+	for (i in 1:n) {
+
+		for (j in 1:n){
+
+			if (i!=j) {
+
+				m[i,j] <- round(gcd.hf(long1=cSt[i,]$long,
+								 lat1=cSt[i,]$lat,
+								 long2=cSt[j,]$long,
+								 lat2=cSt[j,]$lat))
+			}
+		}
+	}
+	rownames(m) <- cSt$state
+	colnames(m) <- cSt$state
+	State_distMat <- m
+	save(State_distMat,file=file.path(root,"data/State_distMat.RData"))
+
+	State_distTable = data.table(melt(State_distMat))
+	setnames(State_distTable,c("from","to","km"))
+	save(State_distTable,file=file.path(root,"data/State_distTable.RData"))
+}
 
 
 

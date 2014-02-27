@@ -15,10 +15,17 @@ Depends:
     zoo,
     XML,
     xlsx,
-    reshape2
+    reshape2,
+    quantmod
 Collate:
     'makers.r'
     'EconData-package.R'
     'doc_FHFA_msa.r'
     'doc_FHFA_states.r'
     'doc_medinc.r'
+    'doc_landvalues.r'
+    'doc_cpiausl.r'
+    'doc_CPIHOSSL.r'
+    'doc_distance.r'
+    'doc_states.r'
+    'doc_distTab.r'

@@ -1,6 +1,6 @@
 \name{makeAbbreviations}
 \alias{makeAbbreviations}
-\title{Correspondance of US State with FIPS code, Census Region and Division}
+\title{makes Correspondance of US State with FIPS code, Census Region and Division}
 \usage{
   makeAbbreviations(url = "http://www.epa.gov/enviro/html/codes/state.html",
     root = "~/git/EconData")
@@ -24,6 +24,10 @@
 }
 \seealso{
   Other makers: \code{\link{makeAllData}},
-  \code{\link{makeFHFA}}, \code{\link{makeMedianIncome}}
+  \code{\link{makeCPIUS}}, \code{\link{makeFHFA}},
+  \code{\link{makeLincolnHomeValues}},
+  \code{\link{makeMedianIncome}},
+  \code{\link{makeUS_coordinates}},
+  \code{\link{makeUS_distance}}
 }
 

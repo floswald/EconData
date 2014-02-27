@@ -7,9 +7,9 @@
   \url{http://www.census.gov/hhes/www/income/data/historical/household/}
 }
 \description{
-  saves 2 lists \code{current} and \code{in2012}, which
-  stands for current dollars or 2012 dollars. each list has
-  elements zinc, zse, incl, sel.
+  contains 2 lists \code{current} and \code{in2012}, which
+  stands for median income in current dollars or 2012
+  dollars. each list has elements zinc, zse, incl, sel.
 }
 \details{
   Each of \code{current} and \code{in2012} contains

@@ -1,6 +1,6 @@
 \name{makeFHFA}
 \alias{makeFHFA}
-\title{build FHFA expanded house price indices}
+\title{make FHFA expanded house price indices}
 \usage{
   makeFHFA(fhfaStates = "http://www.fhfa.gov/webfiles/25831/3q13hpists_expandeddata.txt",
     fhfaCBSA = "http://www.fhfa.gov/webfiles/25833/3q13hpicbsa_expandeddata.txt",
@@ -27,6 +27,10 @@
 }
 \seealso{
   Other makers: \code{\link{makeAbbreviations}},
-  \code{\link{makeAllData}}, \code{\link{makeMedianIncome}}
+  \code{\link{makeAllData}}, \code{\link{makeCPIUS}},
+  \code{\link{makeLincolnHomeValues}},
+  \code{\link{makeMedianIncome}},
+  \code{\link{makeUS_coordinates}},
+  \code{\link{makeUS_distance}}
 }
 
