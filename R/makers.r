@@ -20,6 +20,7 @@ makeAllData <- function(root="~/git/EconData"){
 	makeLincolnHomeValues(root=root)
 	makeUS_coordinates(root=root)
   makeUS_distance(root=root)
+	makeCPIUS(root=root)
 	return(TRUE)
 }
 
@@ -268,26 +269,89 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
   return(d) # Distance in km
 }
 
+
+# Calculates the geodesic distance between two points specified by radian latitude/longitude using the
+# Spherical Law of Cosines (slc)
+gcd.slc <- function(long1, lat1, long2, lat2) {
+  R <- 6371 # Earth mean radius [km]
+  d <- acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2) * cos(long2-long1)) * R
+  return(d) # Distance in km
+}
+
+deg2rad <- function(deg) return(deg*pi/180)
+
+
+
+
+
+
 #' make Coordinate of US State centers
 #'
+#' @param agg list of character vectors of state abbreviations that should be aggregated into one location
 #' @references \url{http://staff.washington.edu/glynn/dist_matrix.pdf}
 #' @family makers
-makeUS_coordinates <- function(root="~/git/EconData"){
-	coordStates <- read.table("http://staff.washington.edu/glynn/state.data",header=FALSE)
-	names(coordStates) <- c("state","FIPS","lat","long")
+#' @examples
+#' all <- makeUS_coordinates()
+#' aggregated <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
+makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
+	coordStates <- data.table(read.table("http://staff.washington.edu/glynn/state.data",header=FALSE))
+	setnames(coordStates,c("state","FIPS","lat","long"))
 	coordStates$state <- as.character(coordStates$state)
+
+	if (!is.null(agg)){
+
+		# drop FIPS
+		coordStates[, FIPS := NULL]
+
+		l <- list()
+		for (i in 1:length(agg)){
+			l[[i]] <- copy(coordStates[ state %in% agg[[i]] , list(lat=mean(lat),long=mean(long)) ])
+			# mean produces weired results. just pick first location for now.
+			#l[[i]] <- copy(coordStates[ state %in% agg[[i]] , list(lat=lat[1],long=long[1]) ])
+			l[[i]][, state := paste(agg[[i]],collapse=".")]
+			setcolorder(l[[i]],c("state","lat","long"))
+		}
+
+		# remove individual states
+		# and add to list
+		l[[length(agg) + 1]] <- coordStates[ !state %in% unlist(agg) ]
+
+		coordStates_agg <- rbindlist(l)
+
+		save(coordStates_agg,file=file.path(root,"data/coordStates_agg.RData"))
+		return(coordStates_agg)
+	} else {
 	
-	save(coordStates,file=file.path(root,"data/coordStates.RData"))
+		save(coordStates,file=file.path(root,"data/coordStates.RData"))
+		return(coordStates)
+	}
+
 
 }
 
+
+
 #' make Distance between US state centers
 #'
+#' @param agg list of character vectors of state abbreviations that should be aggregated into one location
 #' @family makers
-makeUS_distance <- function(root="~/git/EconData"){
+#' @examples
+#' all <- makeUS_distance()
+#' aggregated <- makeUS_distance(agg=list(c("ME","VT"),c("ND","SD","WY")))
+makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 
-	data(coordStates,package="EconData")
-	cSt <- coordStates
+	if(!is.null(agg)){
+		cSt <- makeUS_coordinates(root=root,agg=agg)
+	} else {
+
+		data(coordStates,package="EconData")
+		cSt <- coordStates
+
+	}
+
+	# convert degrees to radians
+	cSt[ ,lat := deg2rad(lat)]
+	cSt[ ,long := deg2rad(long)]
 
 	n <- nrow(cSt)
 
@@ -308,12 +372,31 @@ makeUS_distance <- function(root="~/git/EconData"){
 	}
 	rownames(m) <- cSt$state
 	colnames(m) <- cSt$state
-	State_distMat <- m
-	save(State_distMat,file=file.path(root,"data/State_distMat.RData"))
+	if (!is.null(agg)){
+		State_distMat_agg <- m
+		save(State_distMat_agg,file=file.path(root,"data/State_distMat_agg.RData"))
 
-	State_distTable = data.table(melt(State_distMat))
-	setnames(State_distTable,c("from","to","km"))
-	save(State_distTable,file=file.path(root,"data/State_distTable.RData"))
+		State_distTable_agg = data.table(melt(State_distMat_agg))
+		setnames(State_distTable_agg,c("from","to","km"))
+		save(State_distTable_agg,file=file.path(root,"data/State_distTable_agg.RData"))
+
+		return(list(mat=State_distMat_agg,tab=State_distTable_agg))
+
+	} else {
+
+		State_distMat <- m
+		save(State_distMat,file=file.path(root,"data/State_distMat.RData"))
+
+		State_distTable = data.table(melt(State_distMat))
+		setnames(State_distTable,c("from","to","km"))
+		save(State_distTable,file=file.path(root,"data/State_distTable.RData"))
+
+		return(list(mat=State_distMat,tab=State_distTable))
+
+	}
+
+
+
 }
 
 
