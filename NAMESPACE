@@ -1,1 +1,8 @@
 exportPattern("^[[:alpha:]]+")
+
+import(XML)
+import(xlsx)
+import(reshape2)
+import(quantmod)
+import(zoo)
+

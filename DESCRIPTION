@@ -10,13 +10,15 @@ Description: This package ships with a suite of datasets that I needed in
     domain, but none of them is an easy to use format. I provide the raw data
     as well as the functions that convert the data into a useable R dataset.
 License: GPL-3
-Depends:
-    data.table,
-    zoo,
+URL: https://github.com/floswald/EconData
+Imports:
     XML,
     xlsx,
     reshape2,
-    quantmod
+    quantmod,
+    zoo
+Depends:
+    data.table
 Collate:
     'makers.r'
     'EconData-package.R'
