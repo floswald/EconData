@@ -19,7 +19,8 @@
 \seealso{
   Other makers: \code{\link{makeAbbreviations}},
   \code{\link{makeAllData}}, \code{\link{makeCPIUS}},
-  \code{\link{makeFHFA}}, \code{\link{makeMedianIncome}},
+  \code{\link{makeFHFA}}, \code{\link{makeMORTGAGE30US}},
+  \code{\link{makeMedianIncome}},
   \code{\link{makeUS_coordinates}},
   \code{\link{makeUS_distance}}
 }

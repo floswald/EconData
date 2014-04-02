@@ -4,7 +4,8 @@
 \title{FHFA house price indices US states over time}
 \format{long}
 \source{
-  \url{http://www.fhfa.gov/Default.aspx?Page=87}
+  \url{http://www.fhfa.gov/Default.aspx?Page=87},
+  \url{http://www.fhfa.gov/webfiles/26093/4q13hpicd_expandeddata.txt}
 }
 \description{
   contains 2 lists \code{qtr} and \code{yr}, which stands

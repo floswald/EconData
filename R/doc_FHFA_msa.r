@@ -9,6 +9,6 @@
 #' @docType data
 #' @usage data(FHFA_msa50)
 #' @format long 
-#' @source \url{http://www.fhfa.gov/Default.aspx?Page=87}
+#' @source \url{http://www.fhfa.gov/Default.aspx?Page=87}, \url{http://www.fhfa.gov/webfiles/26097/4q13hpicbsa_expandeddata.txt}
 #' @author Florian Oswald
 NULL

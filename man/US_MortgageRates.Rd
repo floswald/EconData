@@ -1,0 +1,17 @@
+\docType{data}
+\name{US_MortgageRates}
+\alias{US_MortgageRates}
+\title{30-Year Fixed Rate Mortgage Average in the United States}
+\format{long data.table}
+\source{
+  \url{http://research.stlouisfed.org/fred2/series/MORTGAGE30US}
+}
+\description{
+  time series in average mortgage rates on fixed mortgages
+  for the US. obtained from FRED.
+}
+\author{
+  Florian Oswald
+}
+\keyword{datasets}
+

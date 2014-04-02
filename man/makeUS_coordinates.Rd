@@ -24,6 +24,7 @@ aggregated <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
   \code{\link{makeAllData}}, \code{\link{makeCPIUS}},
   \code{\link{makeFHFA}},
   \code{\link{makeLincolnHomeValues}},
+  \code{\link{makeMORTGAGE30US}},
   \code{\link{makeMedianIncome}},
   \code{\link{makeUS_distance}}
 }

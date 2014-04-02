@@ -1,11 +1,11 @@
 \docType{data}
-\name{FHFA_msa50}
-\alias{FHFA_msa50}
-\title{FHFA house price indices for 50 biggest MSAs over time}
+\name{FHFA_Div}
+\alias{FHFA_Div}
+\title{FHFA house price indices by US census Division}
 \format{long}
 \source{
   \url{http://www.fhfa.gov/Default.aspx?Page=87},
-  \url{http://www.fhfa.gov/webfiles/26097/4q13hpicbsa_expandeddata.txt}
+  \url{http://www.fhfa.gov/webfiles/26093/4q13hpicd_expandeddata.txt}
 }
 \description{
   contains 2 lists \code{qtr} and \code{yr}, which stands

@@ -2,15 +2,9 @@
 \alias{makeFHFA}
 \title{make FHFA expanded house price indices}
 \usage{
-  makeFHFA(fhfaStates = "http://www.fhfa.gov/webfiles/25831/3q13hpists_expandeddata.txt",
-    fhfaCBSA = "http://www.fhfa.gov/webfiles/25833/3q13hpicbsa_expandeddata.txt",
-    root = "~/git/EconData")
+  makeFHFA(root = "~/git/EconData")
 }
 \arguments{
-  \item{fhfaStates}{URL to txt state level data}
-
-  \item{fhfaCBSA}{URL to txt 50 larges MSA level data}
-
   \item{root}{path/to/your/package/root}
 }
 \value{
@@ -29,6 +23,7 @@
   Other makers: \code{\link{makeAbbreviations}},
   \code{\link{makeAllData}}, \code{\link{makeCPIUS}},
   \code{\link{makeLincolnHomeValues}},
+  \code{\link{makeMORTGAGE30US}},
   \code{\link{makeMedianIncome}},
   \code{\link{makeUS_coordinates}},
   \code{\link{makeUS_distance}}
