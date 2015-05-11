@@ -19,11 +19,16 @@ makeAllData <- function(root="~/git/EconData"){
 	makeFHFA(root=root)
 	makeLincolnHomeValues(root=root)
 	makeUS_coordinates(root=root)
+	makeUS_coordinates(root=root,agg="Division")
     makeUS_distance(root=root)
+    makeUS_distance(root=root,agg="Division")
 	makeCPIUS(root=root)
 	makeMORTGAGE30US(root=root)
 	makeInterstateMig(root=root)
 	makeOwnershipRates(root=root)
+	makeBEAincome(root)
+	cat("building population counts, may take a little.\n")
+	makePopulation(root)
 	return(TRUE)
 }
 
@@ -50,6 +55,60 @@ makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.ht
 	states[,STATE := as.character(STATE)]
 	states[,Abbreviation:= as.character(Abbreviation)]
 	states[,FIPS := as.numeric(as.character(FIPS))]
+
+	# manuall add PSID codes
+	states[,                               PSID := 0]
+	states[STATE=="ALABAMA",               PSID := 1]
+	states[STATE=="ARIZONA",               PSID := 2]
+	states[STATE=="ARKANSAS",              PSID := 3]
+	states[STATE=="CALIFORNIA",            PSID := 4]
+	states[STATE=="COLORADO",              PSID := 5]
+	states[STATE=="CONNECTICUT",           PSID := 6]
+	states[STATE=="DELAWARE",              PSID := 7]
+	states[STATE=="DISCTRICT OF COLUMBIA", PSID := 8]
+	states[STATE=="FLORIDA",               PSID := 9]
+	states[STATE=="GEORGIA",               PSID := 10]
+	states[STATE=="IDAHO",                 PSID := 11]
+	states[STATE=="ILLINOIS",              PSID := 12]
+	states[STATE=="INDIANA",               PSID := 13]
+	states[STATE=="IOWA",                  PSID := 14]
+	states[STATE=="KANSAS",                PSID := 15]
+	states[STATE=="KENTUCKY",              PSID := 16]
+	states[STATE=="LOUISIANA",             PSID := 17]
+	states[STATE=="MAINE",                 PSID := 18]
+	states[STATE=="MARYLAND",              PSID := 19]
+	states[STATE=="MASSACHUSETTS",         PSID := 20]
+	states[STATE=="MICHIGAN",              PSID := 21]
+	states[STATE=="MINNESOTA",             PSID := 22]
+	states[STATE=="MISSISSIPPI",           PSID := 23]
+	states[STATE=="MISSOURI",              PSID := 24]
+	states[STATE=="MONTANA",               PSID := 25]
+	states[STATE=="NEBRASKA",              PSID := 26]
+	states[STATE=="NEVADA",                PSID := 27]
+	states[STATE=="NEW HAMPSHIRE",         PSID := 28]
+	states[STATE=="NEW JERSEY",            PSID := 29]
+	states[STATE=="NEW MEXICO",            PSID := 30]
+	states[STATE=="NEW YORK",              PSID := 31]
+	states[STATE=="NORTH CAROLINA",        PSID := 32]
+	states[STATE=="NORTH DAKOTA",          PSID := 33]
+	states[STATE=="OHIO",                  PSID := 34]
+	states[STATE=="OKLAHOMA",              PSID := 35]
+	states[STATE=="OREGON",                PSID := 36]
+	states[STATE=="PENNSYLVANIA",          PSID := 37]
+	states[STATE=="RHODE ISLAND",          PSID := 38]
+	states[STATE=="SOUTH CAROLINA",        PSID := 39]
+	states[STATE=="SOUTH DAKOTA",          PSID := 40]
+	states[STATE=="TENNESSEE",             PSID := 41]
+	states[STATE=="TEXAS",                 PSID := 42]
+	states[STATE=="UTAH",                  PSID := 43]
+	states[STATE=="VERMONT",               PSID := 44]
+	states[STATE=="VIRGINIA",              PSID := 45]
+	states[STATE=="WASHINGTON",            PSID := 46]
+	states[STATE=="WEST VIRGINIA",         PSID := 47]
+	states[STATE=="WISCONSIN",             PSID := 48]
+	states[STATE=="WYOMING",               PSID := 49]
+	states[STATE=="ALASKA",                PSID := 50]
+	states[STATE=="HAWAII",                PSID := 51]
 	setkey(states,FIPS)
 
 	st <- data.table(read.xlsx(file=file.path(root,"inst/extdata/census/state_geocodes_v2011.xls"),sheetIndex=2))
@@ -58,11 +117,12 @@ makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.ht
 
 	st[,State := NULL]
 
+	
 	setkey(st,FIPS)
 
 	US_states <- st[states]
 	setnames(US_states,"Abbreviation","state")
-	setcolorder(US_states,c("FIPS","STATE","state","Reg_ID","Region","Div_ID","Division"))
+	setcolorder(US_states,c("FIPS","PSID","STATE","state","Reg_ID","Region","Div_ID","Division"))
 
 	save(US_states,file=file.path(root,"data/US_states.RData"))
 
@@ -111,6 +171,7 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	# get long dataset
 	current$incl <- melt(current$inc,id.vars="State")
 	names(current$incl)[2:3] <- c("Year","medinc")
+	current$incl$State <- str_trim(current$incl$State)
 	current$Year <- as.character(current$Year)
 	current$sel <- melt(current$se,id.vars="State")
 	names(current$sel)[2:3] <- c("Year","se")
@@ -164,6 +225,16 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	
 	medinc_2012 <- in2012
 
+	# Census Region level medians in current
+	reg <- read.xlsx(file=file.path(root,"inst/extdata/census/H06AR_2011.xls"),sheetIndex=1,rowIndex=c(7:43,45:81,83:119,121:157,159:195),colIndex=3,header=FALSE)
+	reg$year <- c(rep(2011:1975,5))
+	reg$region <- c(rep("USA",length(2011:1975)),rep("Northeast",length(2011:1975)),rep("Midwest",length(2011:1975)),rep("South",length(2011:1975)),rep("West",length(2011:1975)))
+	reg_current = as.data.table(reg)
+	setcolorder(reg_current,c(2,3,1))
+	setnames(reg_current,"V3","medinc")
+
+
+	save(reg_current,file=file.path(root,"data/US_medinc_reg.RData"))
 	save(medinc_2012,file=file.path(root,"data/US_medinc_2012.RData"))
 	save(medinc_current,file=file.path(root,"data/US_medinc_current.RData"))
 	return(NULL)
@@ -191,11 +262,12 @@ makeFHFA <- function(root="~/git/EconData"){
   
 	states$qtr <- data.table(read.table(file=file.path(root,"inst/extdata/FHFA/4q13hpists_expandeddata.txt"),sep="\t",header=TRUE))
 	msa50$qtr <- data.table(read.table(file=file.path(root,"inst/extdata/FHFA/4q13hpicbsa_expandeddata.txt"),sep="\t",header=TRUE))
-	USDiv$qtr <- data.table(read.table(file=file.path(root,"inst/extdata/FHFA/4q13hpicd_expandeddata.txt"),sep="\t",header=TRUE))
+	USDiv$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_AT_us_and_census.txt",header=FALSE))
+	setnames(USDiv$qtr,c("Division","yr","qtr","index_nsa"))
 
 	states$yr <- states$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(state,yr)]
 	msa50$yr <- msa50$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(CBSA,Metropolitan_Area_Name,yr)]
-	USDiv$yr <- USDiv$qtr[,list(index_nsa=mean(index_nsa)),by=list(cd,yr)]
+	USDiv$yr <- USDiv$qtr[,list(index_nsa=mean(index_nsa)),by=list(Division,yr)]
 
 	# create date variable in qtr
 	states$qtr[, quarter := as.yearqtr(paste0(yr," Q",qtr))]
@@ -311,18 +383,30 @@ deg2rad <- function(deg) return(deg*pi/180)
 
 #' make Coordinate of US State centers
 #'
+#' optionally one can supply a list that groups states together. like census divisions.
+#' the relevant location is then just the average of the coordinates of the constituting states
+#'
 #' @param agg list of character vectors of state abbreviations that should be aggregated into one location
 #' @references \url{http://staff.washington.edu/glynn/dist_matrix.pdf}
 #' @family makers
 #' @examples
 #' all <- makeUS_coordinates()
 #' aggregated <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
+#' Divisions <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
 makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 	coordStates <- data.table(read.table("http://staff.washington.edu/glynn/state.data",header=FALSE))
 	setnames(coordStates,c("state","FIPS","lat","long"))
 	coordStates$state <- as.character(coordStates$state)
 
-	if (!is.null(agg)){
+	if (is.null(agg)){
+
+		save(coordStates,file=file.path(root,"data/coordStates.RData"))
+		return(coordStates)
+
+	} else if (is.list(agg)){
+
+	
+		# custom aggregation
 
 		# drop FIPS
 		coordStates[, FIPS := NULL]
@@ -330,26 +414,37 @@ makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 		l <- list()
 		for (i in 1:length(agg)){
 			l[[i]] <- copy(coordStates[ state %in% agg[[i]] , list(lat=mean(lat),long=mean(long)) ])
-			# mean produces weired results. just pick first location for now.
-			#l[[i]] <- copy(coordStates[ state %in% agg[[i]] , list(lat=lat[1],long=long[1]) ])
 			l[[i]][, state := paste(agg[[i]],collapse=".")]
 			setcolorder(l[[i]],c("state","lat","long"))
 		}
 
 		# remove individual states
 		# and add to list
-		l[[length(agg) + 1]] <- coordStates[ !state %in% unlist(agg) ]
+		if (nrow(coordStates[ !state %in% unlist(agg) ]) > 0){
 
-		coordStates_agg <- rbindlist(l)
+			l[[length(agg) + 1]] <- coordStates[ !state %in% unlist(agg) ]
+			coordStates_agg <- rbindlist(l)
+
+		}
 
 		save(coordStates_agg,file=file.path(root,"data/coordStates_agg.RData"))
 		return(coordStates_agg)
-	} else {
-	
-		save(coordStates,file=file.path(root,"data/coordStates.RData"))
+
+	} else if (!is.null(agg) & agg=="Division"){
+		data(US_states,package="EconData")
+		US_states[,Division := abbreviate(Division,minlength=3)]
+
+		setkey(US_states,FIPS)
+		setkey(coordStates,FIPS)
+		coordStates <- coordStates[ US_states ]
+
+		coordStates <- coordStates[!is.na(Division),list(lat=mean(lat),long=mean(long)),by=Division]
+    coordStates <- coordStates[order(Division)]
+		setnames(coordStates,"Division","state")
+
+		save(coordStates,file=file.path(root,"data/coordDivision.RData"))
 		return(coordStates)
 	}
-
 
 }
 
@@ -364,14 +459,18 @@ makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 #' aggregated <- makeUS_distance(agg=list(c("ME","VT"),c("ND","SD","WY")))
 makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 
-	if(!is.null(agg)){
+	if (is.null(agg)){
+
+		cSt <- makeUS_coordinates(root=root,agg=NULL)
+
+	} else if(is.list(agg)){
+
 		cSt <- makeUS_coordinates(root=root,agg=agg)
-	} else {
+	} else if (agg=="Division"){
+	
+		cSt <- makeUS_coordinates(root=root,agg="Division")
 
-		data(coordStates,package="EconData")
-		cSt <- coordStates
-
-	}
+	} 
 
 	# convert degrees to radians
 	cSt[ ,lat := deg2rad(lat)]
@@ -396,17 +495,7 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 	}
 	rownames(m) <- cSt$state
 	colnames(m) <- cSt$state
-	if (!is.null(agg)){
-		State_distMat_agg <- m
-		save(State_distMat_agg,file=file.path(root,"data/State_distMat_agg.RData"))
-
-		State_distTable_agg = data.table(melt(State_distMat_agg))
-		setnames(State_distTable_agg,c("from","to","km"))
-		save(State_distTable_agg,file=file.path(root,"data/State_distTable_agg.RData"))
-
-		return(list(mat=State_distMat_agg,tab=State_distTable_agg))
-
-	} else {
+	if (is.null(agg)){
 
 		State_distMat <- m
 		save(State_distMat,file=file.path(root,"data/State_distMat.RData"))
@@ -416,6 +505,21 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 		save(State_distTable,file=file.path(root,"data/State_distTable.RData"))
 
 		return(list(mat=State_distMat,tab=State_distTable))
+
+	} else if (is.list(agg)){
+		State_distMat_agg <- m
+		save(State_distMat_agg,file=file.path(root,"data/State_distMat_agg.RData"))
+
+		State_distTable_agg = data.table(melt(State_distMat_agg))
+		setnames(State_distTable_agg,c("from","to","km"))
+		save(State_distTable_agg,file=file.path(root,"data/State_distTable_agg.RData"))
+
+		return(list(mat=State_distMat_agg,tab=State_distTable_agg))
+
+	} else if (!is.null(agg) & agg=="Division"){
+		Division_distMat <- m
+		return(m)
+		save(Division_distMat,file=file.path(root,"data/Division_distMat.RData"))
 
 	}
 
@@ -506,6 +610,336 @@ makeOwnershipRates <- function(root="~/git/EconData"){
 
 	save(Ownership,file=file.path(root,"data/Ownership.RData"))
 }
+
+
+#' Census Population Count by state for 1948-2012
+#' 
+#' takes data from US census bureau intercensal 
+#' sites at
+#' http://www.census.gov/popest/data/state/asrh/1980s/80s_st_totals.html
+#' http://www.census.gov/popest/data/state/asrh/1980s/tables/8090com.txt
+#' http://www.census.gov/popest/data/state/totals/1990s/tables/ST-99-03.txt
+#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.csv
+#' http://www.census.gov/popest/data/state/totals/2012/tables/NST-EST2012-01.csv
+#' where the last two have been manually cleaned in inst/extdata as \code{pop2000.csv} and \code{pop2010.csv}
+makePopulation <- function(root="~/git/EconData"){
+
+	# raw data
+	r = list()
+
+	# 1900-1905
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st0009ts.txt",skip=17,nrows=55,widths=c(19,9,9,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1900:1905))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:7] <- apply(tmp[,2:7],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1900_1905 <- data.table(tmp)
+
+	# 1906-09
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st0009ts.txt",skip=75,nrows=55,widths=c(19,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1906:1909))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:5] <- apply(tmp[,2:5],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1906_1909 <- data.table(tmp)
+
+
+	# 1910-1915
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st1019ts.txt",skip=17,nrows=55,widths=c(18,9,9,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1910:1915))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:7] <- apply(tmp[,2:7],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1910_1915 <- data.table(tmp)
+
+	# 1916-19
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st1019ts.txt",skip=75,nrows=55,widths=c(18,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1916:1919))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:5] <- apply(tmp[,2:5],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1916_1919 <- data.table(tmp)
+
+
+	# 1920-25
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st2029ts.txt",skip=17,nrows=55,widths=c(18,9,9,9,9,9,8),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1920:1925))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:7] <- apply(tmp[,2:7],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1920_1925 <- data.table(tmp)
+
+	# 1926-29
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st2029ts.txt",skip=75,nrows=55,widths=c(18,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1926:1929))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:5] <- apply(tmp[,2:5],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1926_1929 <- data.table(tmp)
+
+	# 1930-35
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st3039ts.txt",skip=17,nrows=55,widths=c(18,9,9,9,9,9,8),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1930:1935))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:7] <- apply(tmp[,2:7],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1930_1935 <- data.table(tmp)
+
+	# 1936-39
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st3039ts.txt",skip=76,nrows=55,widths=c(18,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1936:1939))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:5] <- apply(tmp[,2:5],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1936_1939 <- data.table(tmp)
+	
+	# 1940-45
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st4049ts.txt",skip=17,nrows=55,widths=c(18,9,9,9,9,9,8),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1940:1945))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:7] <- apply(tmp[,2:7],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1940_1945 <- data.table(tmp)
+
+	# 1936-39
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st4049ts.txt",skip=75,nrows=55,widths=c(18,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1946:1949))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:5] <- apply(tmp[,2:5],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1946_1949 <- data.table(tmp)
+
+	# 1950-54
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st5060ts.txt",skip=17,nrows=61,widths=c(16,8,8,9,9,8,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-2]
+	names(tmp) <- c("state",paste0(1950:1954))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:6] <- apply(tmp[,2:6],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1950_1954 <- data.table(tmp)
+
+	# 1955-69
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st5060ts.txt",skip=83,nrows=60,widths=c(16,8,8,9,9,8),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1955:1959))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:6] <- apply(tmp[,2:6],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1955_1959 <- data.table(tmp)
+
+	# 1960-64
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st6070ts.txt",skip=17,nrows=58,widths=c(13,9,9,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-2]
+	names(tmp) <- c("state",paste0(1960:1964))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:6] <- apply(tmp[,2:6],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1960_1964 <- data.table(tmp)
+
+	# 1965-69
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st6070ts.txt",skip=80,nrows=60,widths=c(13,9,9,9,9,9),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1965:1969))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp[,2:6] <- apply(tmp[,2:6],2,function(x) as.numeric(gsub("\\,","",x)) * 1000)   # data in thousands
+	tmp[1,1] <- "US"
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1965_1969 <- data.table(tmp)
+
+	# 1970-75
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st7080ts.txt",skip=14,nrows=52,widths=c(3,3,10,10,10,10,10,10),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-1]
+	names(tmp) <- c("state",paste0(1970:1975))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1970_1975 <- data.table(tmp)
+
+	# 1976-79
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st7080ts.txt",skip=67,nrows=52,widths=c(3,3,10,10,10,10),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-1]
+	names(tmp) <- c("state",paste0(1976:1979))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1976_1979 <- data.table(tmp)
+
+	# 1980-84
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st8090ts.txt",skip=10,nrows=52,widths=c(2,11,10,10,10,10),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1980:1984))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1980_1984 <- data.table(tmp)
+
+	# 1985-89
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/asrh/1980s/tables/st8090ts.txt",skip=69,nrows=52,widths=c(2,11,10,10,10,10),strip.white=TRUE,stringsAsFactors=FALSE)
+	names(tmp) <- c("state",paste0(1985:1989))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	r$y1985_1989 <- data.table(tmp)
+
+
+	# ----------------
+	# long state names
+	# ----------------
+
+	l <- list()
+
+	# 1999-1994
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/totals/1990s/tables/ST-99-03.txt",skip=13,nrows=65,widths=c(7,27,9,12,12,12,12,12),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-1]
+	names(tmp) <- c("state",paste0(1999:1994))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	l$y1999_1994 <- data.table(tmp)
+
+	# 1993-1990
+	tmp <- read.fwf("http://www.census.gov/popest/data/state/totals/1990s/tables/ST-99-03.txt",skip=87,nrows=65,widths=c(7,27,9,12,12,12,12),strip.white=TRUE,stringsAsFactors=FALSE)
+	tmp = tmp[,-c(1,7)]
+	names(tmp) <- c("state",paste0(1993:1990))
+	tmp <- tmp[complete.cases(tmp),]
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	l$y1993_1990 <- data.table(tmp)
+
+	# 2000s
+	#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.csv
+	tmp <- read.csv(file.path(root,"inst/extdata/census/pop2000s.csv"),stringsAsFactors=FALSE)
+	tmp = tmp[,-c(2,14)]
+	names(tmp) <- c("state",paste0(2000:2010))
+	tmp$state = gsub("\\.","",tmp$state)
+	tmp[,2:12] <- apply(tmp[,2:12],2,function(x) as.numeric(gsub("\\,","",x)) )  
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	l$y2000s = data.table(tmp)
+
+	# 2010s
+	#' http://www.census.gov/popest/data/state/totals/2012/tables/NST-EST2012-01.csv
+	tmp <- read.csv(file.path(root,"inst/extdata/census/pop2010s.csv"),stringsAsFactors=FALSE,header=FALSE)
+	tmp = tmp[,-c(2,3,6)]
+	names(tmp) <- c("state",paste0(2011:2012))
+	tmp$state = gsub("\\.","",tmp$state)
+	tmp[,2:3] <- apply(tmp[,2:3],2,function(x) as.numeric(gsub("\\,","",x)) )  
+	tmp <- melt(tmp,"state")
+	names(tmp)[c(2,3)] <- c("year","population")
+	tmp$year = as.integer(as.character(tmp$year))
+	l$y2010s = data.table(tmp)
+
+
+	l = rbindlist(l)
+
+	l[,STATE := toupper(state)]
+	l[,state := NULL]
+	setkey(l,STATE)
+
+	data(US_states)
+	US_states = US_states[,list(STATE,state)]
+	setkey(US_states,STATE)
+	l = l[US_states]
+	l[,STATE:=NULL]
+	setcolorder(l,c(3,1,2))
+	r$y9020s <- l
+
+	population = rbindlist(r)
+
+	# throw out some states
+	population = population[!state %in% c("AS","GU","PR","VI","West","Midwest","North Central","Northeast","South")]
+	setkey(population,state,year)
+
+	save(population,file=file.path(root,"data/Population.RData"))
+
+	return(population)
+}
+
+
+#' Get BEA annual personal income by state for 1949-now
+#'
+#' data obtained from query to
+#' \url{http://www.bea.gov/iTable/iTableHtml.cfm?reqid=70&step=30&isuri=1&7022=36&7023=0&7033=-1&7024=non-industry&7025=0&7026=xx&7027=-1&7001=336&7028=10&7031=0&7040=-1&7083=levels&7029=36&7090=70}
+# and hand cleaned in  as \code{inst/extdata/BEA/personal_income.csv}
+# these are thousands of current dollars
+makeBEAincome <- function(root="~/git/EconData"){
+
+	p = read.csv("inst/extdata/BEA/personal_income.csv",skip=4,header=TRUE,na.strings="(NA)")
+	p = p[,-1]
+	names(p)[1] <- c("state")
+	names(p)[-1] <- as.yearqtr(gsub("X","",names(p)[-1]),format="%YQ%q")
+	p = melt(p,"state")
+	names(p) = c("STATE","year.qtr","income")
+	p$STATE = toupper(as.character(p$STATE))
+	p$year  = floor(as.numeric(as.character(p$year.qtr)))
+	p = data.table(p)
+
+	p = p[,list(income=mean(income,na.rm=T)),by=list(year,STATE)]
+	setkey(p,STATE,year)
+
+	data(US_states)
+	US_states = US_states[,list(STATE,state)]
+	setkey(US_states,STATE)
+	p = p[US_states]
+	p[,STATE := NULL]
+	pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
+
+	save(pers_income_current,file=file.path(root,"data/PersonalIncome.RData"))
+
+	# long
+
+
+
+
+
+}
+
+
 
 
 
