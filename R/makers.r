@@ -8,6 +8,7 @@
 #'
 #' @param root path/to/your/package/root
 #' @family makers
+#' @export
 makeAllData <- function(root="~/git/EconData"){
 	cat('building all datasets\n')
 	if (!file.exists(file.path(root,"data"))){
@@ -41,18 +42,19 @@ makeAllData <- function(root="~/git/EconData"){
 #' dataset you come across and which is missing full state names,
 #' or abbreviations, or FIPS code etc.
 #'
-#' @param url http://www.epa.gov/enviro/html/codes/state.html
+#' @param url https://www.census.gov/geo/reference/ansi_statetables.html
 #' @param root path/to/your/package/root
 #' @return NULL. saves data to packageroot/data
 #' @family makers
-makeAbbreviations <- function(url="http://www.epa.gov/enviro/html/codes/state.html",
-							  root="~/git/EconData"){
+makeAbbreviations <- function(root="~/git/EconData"){
+  
+  url="https://www.census.gov/geo/reference/ansi_statetables.html"
 
 	# get abbreviations
-	tab <- readHTMLTable(url)
+	tab <- readHTMLTable(getURL(url))
 	states <- data.table(tab[[1]])
-	setnames(states,c("Abbreviation","FIPS","STATE"))
-	states[,STATE := as.character(STATE)]
+	setnames(states,c("STATE","FIPS","Abbreviation"))
+	states[,STATE := toupper(as.character(STATE))]
 	states[,Abbreviation:= as.character(Abbreviation)]
 	states[,FIPS := as.numeric(as.character(FIPS))]
 
@@ -226,15 +228,15 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	medinc_2012 <- in2012
 
 	# Census Region level medians in current
-	reg <- read.xlsx(file=file.path(root,"inst/extdata/census/H06AR_2011.xls"),sheetIndex=1,rowIndex=c(7:43,45:81,83:119,121:157,159:195),colIndex=3,header=FALSE)
-	reg$year <- c(rep(2011:1975,5))
-	reg$region <- c(rep("USA",length(2011:1975)),rep("Northeast",length(2011:1975)),rep("Midwest",length(2011:1975)),rep("South",length(2011:1975)),rep("West",length(2011:1975)))
-	reg_current = as.data.table(reg)
-	setcolorder(reg_current,c(2,3,1))
-	setnames(reg_current,"V3","medinc")
-
-
-	save(reg_current,file=file.path(root,"data/US_medinc_reg.RData"))
+# 	reg <- read.xlsx(file=file.path(root,"inst/extdata/census/H06AR_2011.xls"),sheetIndex=1,rowIndex=c(7:43,45:81,83:119,121:157,159:195),colIndex=3,header=FALSE)
+# 	reg$year <- c(rep(2011:1975,5))
+# 	reg$region <- c(rep("USA",length(2011:1975)),rep("Northeast",length(2011:1975)),rep("Midwest",length(2011:1975)),rep("South",length(2011:1975)),rep("West",length(2011:1975)))
+# 	reg_current = as.data.table(reg)
+# 	setcolorder(reg_current,c(2,3,1))
+# 	setnames(reg_current,"V3","medinc")
+# 
+# 
+# 	save(reg_current,file=file.path(root,"data/US_medinc_reg.RData"))
 	save(medinc_2012,file=file.path(root,"data/US_medinc_2012.RData"))
 	save(medinc_current,file=file.path(root,"data/US_medinc_current.RData"))
 	return(NULL)
@@ -260,14 +262,15 @@ makeFHFA <- function(root="~/git/EconData"){
 	msa50  <- list()
 	USDiv  <- list()
   
-	states$qtr <- data.table(read.table(file=file.path(root,"inst/extdata/FHFA/4q13hpists_expandeddata.txt"),sep="\t",header=TRUE))
-	msa50$qtr <- data.table(read.table(file=file.path(root,"inst/extdata/FHFA/4q13hpicbsa_expandeddata.txt"),sep="\t",header=TRUE))
-	USDiv$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_AT_us_and_census.txt",header=FALSE))
-	setnames(USDiv$qtr,c("Division","yr","qtr","index_nsa"))
+	
+	states$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_state.txt",sep="\t",header=TRUE))
+	msa50$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_metro.txt",sep="\t",header=TRUE))
+	USDiv$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_us_and_census.txt",sep="\t",header=TRUE))
+	setnames(USDiv$qtr,c("Division","yr","qtr","index_nsa","index_sa","note"))
 
 	states$yr <- states$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(state,yr)]
-	msa50$yr <- msa50$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(CBSA,Metropolitan_Area_Name,yr)]
-	USDiv$yr <- USDiv$qtr[,list(index_nsa=mean(index_nsa)),by=list(Division,yr)]
+	msa50$yr <- msa50$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(metro_name,yr)]
+	USDiv$yr <- USDiv$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(Division,yr)]
 
 	# create date variable in qtr
 	states$qtr[, quarter := as.yearqtr(paste0(yr," Q",qtr))]
@@ -321,14 +324,20 @@ makeLincolnHomeValues <- function(root="~/git/EconData"){
 #' @family makers
 #' @references \url{http://research.stlouisfed.org/fred2/series/CPIAUCSL} 
 #'             \url{http://research.stlouisfed.org/fred2/series/CPIHOSSL} 
+#'             \url{http://research.stlouisfed.org/fred2/series/USSTHPI} 
+
 #' download data from FRED with quantmod package
 makeCPIUS <- function(root="~/git/EconData"){
 
 	getSymbols('CPIAUCSL',src='FRED')
 	getSymbols('CPIHOSSL',src='FRED')
+	getSymbols('USSTHPI',src='FRED')
+	
 
 	save(CPIAUCSL,file=file.path(root,"data/CPIAUCSL.RData"))
 	save(CPIHOSSL,file=file.path(root,"data/CPIHOSSL.RData"))
+	save(USSTHPI,file=file.path(root,"data/USSTHPI.RData"))
+	
 
 }
 
@@ -528,7 +537,7 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 
 #' make Interstate Migration Transition Matrix
 #'
-#' @param root
+#' @param root name of package root directory
 makeInterstateMig <- function(root="~/git/EconData"){
 
 	idx <- seq(from=13,to=21,by=2)
@@ -545,7 +554,7 @@ makeInterstateMig <- function(root="~/git/EconData"){
 				   rowIndex=c(12:16,18:22,24:28,30:34,36:40,42,43,49:53,55:59,61:65,67:71,73:76),
 				   colIndex=c(1,2,6,10,idx),header=FALSE)
 
-	names(d) <- c("current","pop.current","instate.mig",as.character(d$V1))
+	names(d) <- c("current","pop.current","mig.within",as.character(d[,1]))
 
 	load(file.path(root,"data/US_states.RData"))
 	abbr <- US_states[,list(State=tolower(STATE),state)]
@@ -619,8 +628,8 @@ makeOwnershipRates <- function(root="~/git/EconData"){
 #' http://www.census.gov/popest/data/state/asrh/1980s/80s_st_totals.html
 #' http://www.census.gov/popest/data/state/asrh/1980s/tables/8090com.txt
 #' http://www.census.gov/popest/data/state/totals/1990s/tables/ST-99-03.txt
-#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.csv
-#' http://www.census.gov/popest/data/state/totals/2012/tables/NST-EST2012-01.csv
+#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.xls
+#' http://www.census.gov/popest/data/national/totals/2015/files/NST-EST2015-alldata.csv
 #' where the last two have been manually cleaned in inst/extdata as \code{pop2000.csv} and \code{pop2010.csv}
 makePopulation <- function(root="~/git/EconData"){
 
@@ -851,12 +860,11 @@ makePopulation <- function(root="~/git/EconData"){
 	l$y1993_1990 <- data.table(tmp)
 
 	# 2000s
-	#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.csv
-	tmp <- read.csv(file.path(root,"inst/extdata/census/pop2000s.csv"),stringsAsFactors=FALSE)
-	tmp = tmp[,-c(2,14)]
-	names(tmp) <- c("state",paste0(2000:2010))
+	#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.xls
+	tmp <- read.xlsx(file.path(root,"inst/extdata/census/ST-EST00INT-01.xls"),sheetIndex=1,rowIndex = 4:60,colIndex=c(1,3:12),header = TRUE)
+	
+	names(tmp) <- c("state",paste0(2000:2009))
 	tmp$state = gsub("\\.","",tmp$state)
-	tmp[,2:12] <- apply(tmp[,2:12],2,function(x) as.numeric(gsub("\\,","",x)) )  
 	tmp <- melt(tmp,"state")
 	names(tmp)[c(2,3)] <- c("year","population")
 	tmp$year = as.integer(as.character(tmp$year))
@@ -864,11 +872,9 @@ makePopulation <- function(root="~/git/EconData"){
 
 	# 2010s
 	#' http://www.census.gov/popest/data/state/totals/2012/tables/NST-EST2012-01.csv
-	tmp <- read.csv(file.path(root,"inst/extdata/census/pop2010s.csv"),stringsAsFactors=FALSE,header=FALSE)
-	tmp = tmp[,-c(2,3,6)]
-	names(tmp) <- c("state",paste0(2011:2012))
-	tmp$state = gsub("\\.","",tmp$state)
-	tmp[,2:3] <- apply(tmp[,2:3],2,function(x) as.numeric(gsub("\\,","",x)) )  
+	tmp <- read.csv("http://www.census.gov/popest/data/national/totals/2015/files/NST-EST2015-alldata.csv",stringsAsFactors=FALSE,header=TRUE)
+	tmp = tmp[,-c(1:4,7,8,14:91)]
+	names(tmp) <- c("state",paste0(2010:2015))
 	tmp <- melt(tmp,"state")
 	names(tmp)[c(2,3)] <- c("year","population")
 	tmp$year = as.integer(as.character(tmp$year))
@@ -901,25 +907,24 @@ makePopulation <- function(root="~/git/EconData"){
 }
 
 
-#' Get BEA annual personal income by state for 1949-now
+#' Per Capita annual personal income and per capita disposable income by state for 1949-now
 #'
-#' data obtained from query to
-#' \url{http://www.bea.gov/iTable/iTableHtml.cfm?reqid=70&step=30&isuri=1&7022=36&7023=0&7033=-1&7024=non-industry&7025=0&7026=xx&7027=-1&7001=336&7028=10&7031=0&7040=-1&7083=levels&7029=36&7090=70}
-# and hand cleaned in  as \code{inst/extdata/BEA/personal_income.csv}
-# these are thousands of current dollars
+#' data obtained from query to \url{http://bea.gov/iTable}, and
+#' \url{http://bea.gov/iTable/iTable.cfm?reqid=70&step=1&isuri=1&acrdn=5}
+# and hand cleaned in as \code{inst/extdata/BEA/BEA-SA1.csv} and \code{inst/extdata/BEA/BEA-SA51.csv}
+# Both tables are in current dollars
 makeBEAincome <- function(root="~/git/EconData"){
 
-	p = read.csv("inst/extdata/BEA/personal_income.csv",skip=4,header=TRUE,na.strings="(NA)")
+	p = read.csv("inst/extdata/BEA/BEA-SA1.csv",skip=4,header=TRUE,na.strings="(NA)")
+
 	p = p[,-1]
 	names(p)[1] <- c("state")
-	names(p)[-1] <- as.yearqtr(gsub("X","",names(p)[-1]),format="%YQ%q")
-	p = melt(p,"state")
-	names(p) = c("STATE","year.qtr","income")
+	names(p)[-1] <- gsub("X","",names(p)[-1])
+	p = melt(p,id.vars = "state")
+	names(p) = c("STATE","year","income")
 	p$STATE = toupper(as.character(p$STATE))
-	p$year  = floor(as.numeric(as.character(p$year.qtr)))
+	p$year = as.numeric(as.character(p$year))
 	p = data.table(p)
-
-	p = p[,list(income=mean(income,na.rm=T)),by=list(year,STATE)]
 	setkey(p,STATE,year)
 
 	data(US_states)
@@ -928,13 +933,27 @@ makeBEAincome <- function(root="~/git/EconData"){
 	p = p[US_states]
 	p[,STATE := NULL]
 	pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
+	
+	# do same for per capita disposable income
+	p = read.csv("inst/extdata/BEA/BEA-SA51.csv",skip=4,header=TRUE,na.strings="(NA)")
+	p = p[,-1]
+	names(p)[1] <- c("state")
+	names(p)[-1] <- gsub("X","",names(p)[-1])
+	p = melt(p,id.vars = "state")
+	names(p) = c("STATE","year","income")
+	p$STATE = toupper(as.character(p$STATE))
+	p$year = as.numeric(as.character(p$year))
+	p = data.table(p)
+	setkey(p,STATE,year)
+	
+	data(US_states)
+	US_states = US_states[,list(STATE,state)]
+	setkey(US_states,STATE)
+	p = p[US_states]
+	p[,STATE := NULL]
+	dispo_income_current = p[!state %in% c("AS","GU","PR","VI")]
 
-	save(pers_income_current,file=file.path(root,"data/PersonalIncome.RData"))
-
-	# long
-
-
-
+	save(pers_income_current,dispo_income_current,file=file.path(root,"data/PersonalIncome.RData"))
 
 
 }

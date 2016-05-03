@@ -12,14 +12,15 @@ Description: This package ships with a suite of datasets that I needed in
 License: GPL-3
 URL: https://github.com/floswald/EconData
 Imports:
-    XML,
     reshape2,
+    XML,
+    xlsx
 Depends:
     zoo,
     quantmod,
     data.table,
     stringr,
-    xlsx,
+    RCurl
 Collate:
     'makers.r'
     'EconData-package.R'
@@ -38,5 +39,4 @@ Collate:
     'doc_Migration.r'
     'doc_ownership.r'
     'doc_mortgage.r'
-    'doc_coord_divisions.r'
-    'doc_distance-division.r'
+RoxygenNote: 5.0.1
