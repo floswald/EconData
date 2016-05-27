@@ -28,6 +28,8 @@ makeAllData <- function(root="~/git/EconData"){
 	makeInterstateMig(root=root)
 	makeOwnershipRates(root=root)
 	makeBEAincome(root)
+	makeBEA_PCincome(root)
+	
 	cat("building population counts, may take a little.\n")
 	makePopulation(root)
 	return(TRUE)
@@ -525,10 +527,11 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 
 		return(list(mat=State_distMat_agg,tab=State_distTable_agg))
 
-	} else if (!is.null(agg) & agg=="Division"){
+	} else if (agg=="Division"){
 		Division_distMat <- m
-		return(m)
 		save(Division_distMat,file=file.path(root,"data/Division_distMat.RData"))
+		return(m)
+	
 
 	}
 
@@ -913,7 +916,7 @@ makePopulation <- function(root="~/git/EconData"){
 #' \url{http://bea.gov/iTable/iTable.cfm?reqid=70&step=1&isuri=1&acrdn=5}
 # and hand cleaned in as \code{inst/extdata/BEA/BEA-SA1.csv} and \code{inst/extdata/BEA/BEA-SA51.csv}
 # Both tables are in current dollars
-makeBEAincome <- function(root="~/git/EconData"){
+makeBEA_PCincome <- function(root="~/git/EconData"){
 
 	p = read.csv("inst/extdata/BEA/BEA-SA1.csv",skip=4,header=TRUE,na.strings="(NA)")
 
@@ -953,10 +956,43 @@ makeBEAincome <- function(root="~/git/EconData"){
 	p[,STATE := NULL]
 	dispo_income_current = p[!state %in% c("AS","GU","PR","VI")]
 
-	save(pers_income_current,dispo_income_current,file=file.path(root,"data/PersonalIncome.RData"))
+	save(pers_income_current,dispo_income_current,file=file.path(root,"data/PC_Income.RData"))
+	return(list(pers_income_current,dispo_income_current))
 
 
 }
+
+#' Get BEA annual personal income by state for 1949-now
+#'
+#' data obtained from query to
+#' \url{http://www.bea.gov/iTable/iTableHtml.cfm?reqid=70&step=30&isuri=1&7022=36&7023=0&7033=-1&7024=non-industry&7025=0&7026=xx&7027=-1&7001=336&7028=10&7031=0&7040=-1&7083=levels&7029=36&7090=70}
+# and hand cleaned in as \code{inst/extdata/BEA/personal_income.csv}
+# these are thousands of current dollars
+makeBEAincome <- function(root="~/git/EconData"){
+  
+  p = read.csv("inst/extdata/BEA/BEA-SQ1.csv",skip=4,header=TRUE,na.strings="(NA)")
+  p = p[,-1]
+  names(p)[1] <- c("state")
+  names(p)[-1] <- as.yearqtr(gsub("X","",names(p)[-1]),format="%YQ%q")
+  p = melt(p,"state")
+  names(p) = c("STATE","year.qtr","income")
+  p$STATE = toupper(as.character(p$STATE))
+  p$year  = floor(as.numeric(as.character(p$year.qtr)))
+  p = data.table(p)
+  
+  p = p[,list(income=mean(income,na.rm=T)),by=list(year,STATE)]
+  setkey(p,STATE,year)
+  
+  data(US_states)
+  US_states = US_states[,list(STATE,state)]
+  setkey(US_states,STATE)
+  p = p[US_states]
+  p[,STATE := NULL]
+  pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
+  
+  save(pers_income_current,file=file.path(root,"data/PersonalIncome.RData"))
+}
+
 
 
 

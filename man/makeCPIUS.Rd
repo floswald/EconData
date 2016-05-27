@@ -13,6 +13,7 @@ and housing cpi  to disk
 \references{
 \url{http://research.stlouisfed.org/fred2/series/CPIAUCSL} 
             \url{http://research.stlouisfed.org/fred2/series/CPIHOSSL} 
+            \url{http://research.stlouisfed.org/fred2/series/USSTHPI} 
 download data from FRED with quantmod package
 }
 \seealso{
