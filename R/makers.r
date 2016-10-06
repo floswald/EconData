@@ -576,7 +576,6 @@ makeInterstateMig <- function(root="~/git/EconData"){
 	dd <- d
 	dd[,-1] <- t(apply(frac,1,function(X) X / X[1]))
 
-	library(reshape)
 	m <- melt(dd[,-c(2,3)],"current")
 	w.own <- m
 	w.own[w.own$current==w.own$variable,]$value <- dd$instate.mig
@@ -593,11 +592,8 @@ makeInterstateMig <- function(root="~/git/EconData"){
 
 #' make Homeownership rates by state over time
 #'
-#' @param root
+#' @param root directory of package
 makeOwnershipRates <- function(root="~/git/EconData"){
-
-
-
 	rows <- list(9:59,70:120,131:181,192:242,253:303,314:364,375:425,436:486)
 	years <- 2012:2005
 
@@ -994,6 +990,38 @@ makeBEAincome <- function(root="~/git/EconData"){
 }
 
 
+#' get US inflation indexed to a base year
+#' 
+#' returns US CPI from http://research.stlouisfed.org/fred2/series/CPIAUCSL indexed at idx and at frequency freq = "monthly", "quartrely" or "yearly".
+#' @export
+#' @examples 
+#' getUS_inflation(idx="1996-01-01",freq="monthly")
+#' getUS_inflation(idx="1996 Q3",freq="quarterly")
+#' getUS_inflation(idx="1996",freq="yearly")
+getUS_inflation <- function(idx="2012 Q1",freq="quarterly"){
+  data(CPIAUCSL,package="EconData",envir=environment())
+  cpi <- CPIAUCSL
+  if (freq=="quarterly"){
+    cpi <- to.quarterly(cpi)
+    cpi <- cpi$cpi.Open
+    names(cpi) <- "cpi"
+    coredata(cpi) <- coredata(cpi)/as.numeric(cpi[as.yearqtr(idx)])	# base year 2012
+    # cpi <- cpi$cpi.Open
+    cpi <- data.table(qtr=as.yearqtr(index(cpi)),cpi=as.numeric(cpi),key="qtr")
+    
+  } else if (freq=="yearly"){
+    cpi <- to.yearly(cpi)
+    cpi <- cpi$cpi.Open
+    names(cpi) <- "cpi"
+    coredata(cpi) <- coredata(cpi)/as.numeric(cpi[idx])	# base year 2012
+    cpi <- data.table(year=year(index(cpi)),cpi=as.numeric(cpi),key="year")
+  } else {
+    names(cpi) <- "cpi"
+    coredata(cpi) <- coredata(cpi)/as.numeric(cpi[idx])	# base year 2012
+    cpi <- data.table(date=as.Date(index(cpi)),cpi=as.numeric(cpi),key="date")
+  }
+  return(cpi)
+}
 
 
 

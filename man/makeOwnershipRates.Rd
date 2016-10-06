@@ -6,6 +6,9 @@
 \usage{
 makeOwnershipRates(root = "~/git/EconData")
 }
+\arguments{
+\item{root}{directory of package}
+}
 \description{
 make Homeownership rates by state over time
 }

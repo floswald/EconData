@@ -20,7 +20,8 @@ Depends:
     quantmod,
     data.table,
     stringr,
-    RCurl
+    RCurl,
+    reshape2
 Collate:
     'makers.r'
     'EconData-package.R'
