@@ -1,37 +1,47 @@
 
 
 
+
+
 # this file contains functions to build RDatasets
 # from raw data
 
+
+
+#' get package root
+#'
+getRoot <- function(){
+	return(system.file(package="EconData"))
+}
+
 #' make all datasets
 #'
-#' @param root path/to/your/package/root
+#' This builds all datasets in this package from its raw source. Most of the data come installed with package as excel or csv files. Some are downloaded from online sources. 
 #' @family makers
 #' @export
-makeAllData <- function(root="~/git/EconData"){
+makeAllData <- function(){
 	cat('building all datasets\n')
-	if (!file.exists(file.path(root,"data"))){
-		cat(sprintf("first you have to create a data directory at %s\n",file.path(root,"data")))
-		return(FALSE)
-	}
-	makeAbbreviations(root=root)
-	makeMedianIncome(root=root)
-	makeFHFA(root=root)
-	makeLincolnHomeValues(root=root)
-	makeUS_coordinates(root=root)
-	makeUS_coordinates(root=root,agg="Division")
-    makeUS_distance(root=root)
-    makeUS_distance(root=root,agg="Division")
-	makeCPIUS(root=root)
-	makeMORTGAGE30US(root=root)
-	makeInterstateMig(root=root)
-	makeOwnershipRates(root=root)
-	makeBEAincome(root)
-	makeBEA_PCincome(root)
+    dir.create(file.path(getRoot(), "data"), showWarnings = FALSE)
 	
-	cat("building population counts, may take a little.\n")
-	makePopulation(root)
+	makeAbbreviations()
+	makeMedianIncome()
+	makeFHFA()
+	makeLincolnHomeValues()
+	makeUS_coordinates()
+	makeUS_coordinates(agg="Division")
+  	makeUS_distance()
+  	makeUS_distance(agg="Division")
+	makeCPIUS()
+	makeMORTGAGE30US()
+	makeInterstateMig()
+	makeOwnershipRates()
+	makeBEAincome()
+	makeBEA_PCincome()
+	
+	#cat("building population counts, may take a little.\n")
+	#makePopulation()
+	cat("Done.\n")
+	
 	return(TRUE)
 }
 
@@ -45,12 +55,11 @@ makeAllData <- function(root="~/git/EconData"){
 #' or abbreviations, or FIPS code etc.
 #'
 #' @param url https://www.census.gov/geo/reference/ansi_statetables.html
-#' @param root path/to/your/package/root
-#' @return NULL. saves data to packageroot/data
+#' @return NULL. saves data to data/
 #' @family makers
-makeAbbreviations <- function(root="~/git/EconData"){
+makeAbbreviations <- function(){
   
-  url="https://www.census.gov/geo/reference/ansi_statetables.html"
+    url="https://www.census.gov/geo/reference/ansi_statetables.html"
 
 	# get abbreviations
 	tab <- readHTMLTable(getURL(url))
@@ -60,7 +69,7 @@ makeAbbreviations <- function(root="~/git/EconData"){
 	states[,Abbreviation:= as.character(Abbreviation)]
 	states[,FIPS := as.numeric(as.character(FIPS))]
 
-	# manuall add PSID codes
+	# manually add PSID codes
 	states[,                               PSID := 0]
 	states[STATE=="ALABAMA",               PSID := 1]
 	states[STATE=="ARIZONA",               PSID := 2]
@@ -115,7 +124,7 @@ makeAbbreviations <- function(root="~/git/EconData"){
 	states[STATE=="HAWAII",                PSID := 51]
 	setkey(states,FIPS)
 
-	st <- data.table(read.xlsx(file=file.path(root,"inst/extdata/census/state_geocodes_v2011.xls"),sheetIndex=2))
+	st <- data.table(read.xlsx(file=file.path(getRoot(),"extdata","census","state_geocodes_v2011.xls"),sheetIndex=2))
 	st[, c("Reg_ID","Div_ID","FIPS") := lapply(st[,list(Reg_ID,Div_ID,FIPS)], function(x) as.numeric(as.character(x)))]
 	st[, c("Region","Division","State") := lapply(st[,list(Region,Division,State)], function(x) as.character(x))]
 
@@ -128,7 +137,7 @@ makeAbbreviations <- function(root="~/git/EconData"){
 	setnames(US_states,"Abbreviation","state")
 	setcolorder(US_states,c("FIPS","PSID","STATE","state","Reg_ID","Region","Div_ID","Division"))
 
-	save(US_states,file=file.path(root,"data/US_states.RData"))
+	save(US_states,file=file.path(getRoot(),"data/US_states.RData"))
 
 	return(US_states)
 }
@@ -137,7 +146,7 @@ makeAbbreviations <- function(root="~/git/EconData"){
 
 
 
-#' make dataset of median income by state and year
+#' make dataset of median income by US state and year
 #'
 #' produce dataset in current and 2012 dollars of
 #' median household income by US state.
@@ -148,15 +157,14 @@ makeAbbreviations <- function(root="~/git/EconData"){
 #' \item zinc: a zoo object of median income
 #' \item zse: a zoo object of it's standard error
 #' \item incl: data.frame with median income in long format
-#' \item sel: data.frame with median income in long format
+#' \item sel: data.frame with standard error of median income in long format
 #' }
 #' 
 #' source: census bureau
 #' @return NULL. 
-#' @param root path/to/your/package/root
 #' @family makers
 #' @references \url{http://www.census.gov/hhes/www/income/data/historical/household/}
-makeMedianIncome <- function(root="~/git/EconData"){
+makeMedianIncome <- function(){
 
 	yrs <- 2012:1984
 
@@ -168,7 +176,7 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	# current dollars
 	rows <- 8:59
 
-	current <- lapply(cols,function(x) read.xlsx(file=file.path(root,"inst/extdata/census/H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	current <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(current$inc) <- c("State",paste0(yrs))
 	names(current$se) <- c("State",paste0(yrs))
 
@@ -201,7 +209,7 @@ makeMedianIncome <- function(root="~/git/EconData"){
 	# 2012 dollars
 	rows <- rows + 53
 
-	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(root,"inst/extdata/census/H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(in2012$inc) <- c("State",paste0(yrs))
 	names(in2012$se) <- c("State",paste0(yrs))
 
@@ -238,9 +246,9 @@ makeMedianIncome <- function(root="~/git/EconData"){
 # 	setnames(reg_current,"V3","medinc")
 # 
 # 
-# 	save(reg_current,file=file.path(root,"data/US_medinc_reg.RData"))
-	save(medinc_2012,file=file.path(root,"data/US_medinc_2012.RData"))
-	save(medinc_current,file=file.path(root,"data/US_medinc_current.RData"))
+# 	save(reg_current,file=file.path(getRoot(),"data","US_medinc_reg.RData"))
+	save(medinc_2012,file=file.path(getRoot(),"data","US_medinc_2012.RData"))
+	save(medinc_current,file=file.path(getRoot(),"data","US_medinc_current.RData"))
 	return(NULL)
 }
 
@@ -255,19 +263,19 @@ makeMedianIncome <- function(root="~/git/EconData"){
 #' Data Licensed from DataQuick). Data is quarterly.
 #'
 #' @return NULL. 
-#' @param root path/to/your/package/root
 #' @family makers
+#' @family FHFAs 
 #' @references \url{http://www.fhfa.gov/Default.aspx?Page=87}
-makeFHFA <- function(root="~/git/EconData"){
+makeFHFA <- function(){
 
 	states <- list()
 	msa50  <- list()
 	USDiv  <- list()
   
 	
-	states$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_state.txt",sep="\t",header=TRUE))
-	msa50$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_metro.txt",sep="\t",header=TRUE))
-	USDiv$qtr <- data.table(read.table("http://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_us_and_census.txt",sep="\t",header=TRUE))
+	states$qtr <- data.table(read.table("https://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_state.txt",sep="\t",header=TRUE))
+	msa50$qtr <- data.table(read.table("https://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_metro.txt",sep="\t",header=TRUE))
+	USDiv$qtr <- data.table(read.table("https://www.fhfa.gov/DataTools/Downloads/Documents/HPI/HPI_EXP_us_and_census.txt",sep="\t",header=TRUE))
 	setnames(USDiv$qtr,c("Division","yr","qtr","index_nsa","index_sa","note"))
 
 	states$yr <- states$qtr[,list(index_nsa=mean(index_nsa),index_sa=mean(index_sa)),by=list(state,yr)]
@@ -290,9 +298,9 @@ makeFHFA <- function(root="~/git/EconData"){
 	FHFA_msa50 <- msa50
 	FHFA_Div   <- USDiv
 
-	save(FHFA_msa50,file=file.path(root,"data/FHFA_msa50.RData"))
-	save(FHFA_Div,file=file.path(root,"data/FHFA_Div.RData"))
-	save(FHFA_states,file=file.path(root,"data/FHFA_states.RData"))
+	save(FHFA_msa50,file=file.path(getRoot(),"data","FHFA_msa50.RData"))
+	save(FHFA_Div,file=file.path(getRoot(),"data","FHFA_Div.RData"))
+	save(FHFA_states,file=file.path(getRoot(),"data","FHFA_states.RData"))
 }
 	
 
@@ -304,43 +312,41 @@ makeFHFA <- function(root="~/git/EconData"){
 #' reads data from the Lincoln Institute xls file.
 #'
 #' @return NULL. 
-#' @param root path/to/your/package/root
 #' @family makers
 #' @references \url{https://www.lincolninst.edu/subcenters/land-values/}
-makeLincolnHomeValues <- function(root="~/git/EconData"){
+makeLincolnHomeValues <- function(){
 
-	d <- fread(input=file.path(root,"inst/extdata/lincolninst/landdata-states-2013q1.csv"),skip=1)
+	d <- fread(input=file.path(getRoot(),"extdata","lincolninst","landdata-states-2013q1.csv"),skip=1)
 	d[,qtr := as.yearqtr(Date)]
 	d[,Date := NULL]
 	setnames(d,c("State","Home.Value","Structure.Cost","Land.Value","Land.Share","Home.Price.Index","Land.Price.Index","qtr"))
 	warning("amounts in HomeValues are current dollars.")
 	HomeValues <- d
-	save(HomeValues,file=file.path(root,"data/HomeValues.RData"))
+	save(HomeValues,file=file.path(getRoot(),"data","HomeValues.RData"))
 }
 
 
 #' make several US inflation datasets
 #'
+#' download data from FRED with quantmod package
+#'
 #' saves cpi for all urban consumers 
-#' and housing cpi  to disk
+#' and housing cpi to disk
 #' @family makers
+#' @family FREDs
 #' @references \url{http://research.stlouisfed.org/fred2/series/CPIAUCSL} 
 #'             \url{http://research.stlouisfed.org/fred2/series/CPIHOSSL} 
 #'             \url{http://research.stlouisfed.org/fred2/series/USSTHPI} 
-
-#' download data from FRED with quantmod package
-makeCPIUS <- function(root="~/git/EconData"){
+makeCPIUS <- function(){
 
 	getSymbols('CPIAUCSL',src='FRED')
 	getSymbols('CPIHOSSL',src='FRED')
 	getSymbols('USSTHPI',src='FRED')
-	
 
-	save(CPIAUCSL,file=file.path(root,"data/CPIAUCSL.RData"))
-	save(CPIHOSSL,file=file.path(root,"data/CPIHOSSL.RData"))
-	save(USSTHPI,file=file.path(root,"data/USSTHPI.RData"))
+	save(CPIAUCSL,file=file.path(getRoot(),"data","CPIAUCSL.RData"))
+	save(CPIHOSSL,file=file.path(getRoot(),"data","CPIHOSSL.RData"))
+	save(USSTHPI,file=file.path(getRoot(),"data","USSTHPI.RData"))
 	
-
 }
 
 
@@ -349,13 +355,14 @@ makeCPIUS <- function(root="~/git/EconData"){
 #' saves the Freddie Mac 30 year FRM index
 #' to disk
 #' @family makers
+#' @family FREDs
 #' @references \url{http://research.stlouisfed.org/fred2/series/MORTGAGE30US} 
 #' download data from FRED with quantmod package
-makeMORTGAGE30US <- function(root="~/git/EconData"){
+makeMORTGAGE30US <- function(){
 
 	getSymbols('MORTGAGE30US',src='FRED')
 
-	save(MORTGAGE30US,file=file.path(root,"data/US_MortgageRates.RData"))
+	save(MORTGAGE30US,file=file.path(getRoot(),"data","US_MortgageRates.RData"))
 
 }
 
@@ -365,7 +372,7 @@ makeMORTGAGE30US <- function(root="~/git/EconData"){
 #' use the haversine formula to compute distance
 #' between 2 locations
 #'
-#' source: \url{http://www.r-bloggers.com/great-circle-distance-calculations-in-r/}
+#' @reference: \url{http://www.r-bloggers.com/great-circle-distance-calculations-in-r/}
 gcd.hf <- function(long1, lat1, long2, lat2) {
   R <- 6371 # Earth mean radius [km]
   delta.long <- (long2 - long1)
@@ -404,14 +411,14 @@ deg2rad <- function(deg) return(deg*pi/180)
 #' all <- makeUS_coordinates()
 #' aggregated <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
 #' Divisions <- makeUS_coordinates(agg=list(c("ME","VT"),c("ND","SD","WY")))
-makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
+makeUS_coordinates <- function(agg=NULL){
 	coordStates <- data.table(read.table("http://staff.washington.edu/glynn/state.data",header=FALSE))
 	setnames(coordStates,c("state","FIPS","lat","long"))
 	coordStates$state <- as.character(coordStates$state)
 
 	if (is.null(agg)){
 
-		save(coordStates,file=file.path(root,"data/coordStates.RData"))
+		save(coordStates,file=file.path(getRoot(),"data","coordStates.RData"))
 		return(coordStates)
 
 	} else if (is.list(agg)){
@@ -438,11 +445,11 @@ makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 
 		}
 
-		save(coordStates_agg,file=file.path(root,"data/coordStates_agg.RData"))
+		save(coordStates_agg,file=file.path(getRoot(),"data","coordStates_agg.RData"))
 		return(coordStates_agg)
 
 	} else if (!is.null(agg) & agg=="Division"){
-		data(US_states,package="EconData")
+		load(file.path(getRoot(),"data","US_states.RData"))
 		US_states[,Division := abbreviate(Division,minlength=3)]
 
 		setkey(US_states,FIPS)
@@ -450,10 +457,10 @@ makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 		coordStates <- coordStates[ US_states ]
 
 		coordStates <- coordStates[!is.na(Division),list(lat=mean(lat),long=mean(long)),by=Division]
-    coordStates <- coordStates[order(Division)]
+   		coordStates <- coordStates[order(Division)]
 		setnames(coordStates,"Division","state")
 
-		save(coordStates,file=file.path(root,"data/coordDivision.RData"))
+		save(coordStates,file=file.path(getRoot(),"data","coordDivision.RData"))
 		return(coordStates)
 	}
 
@@ -468,18 +475,18 @@ makeUS_coordinates <- function(root="~/git/EconData",agg=NULL){
 #' @examples
 #' all <- makeUS_distance()
 #' aggregated <- makeUS_distance(agg=list(c("ME","VT"),c("ND","SD","WY")))
-makeUS_distance <- function(root="~/git/EconData",agg=NULL){
+makeUS_distance <- function(agg=NULL){
 
 	if (is.null(agg)){
 
-		cSt <- makeUS_coordinates(root=root,agg=NULL)
+		cSt <- makeUS_coordinates(agg=NULL)
 
 	} else if(is.list(agg)){
 
-		cSt <- makeUS_coordinates(root=root,agg=agg)
+		cSt <- makeUS_coordinates(agg=agg)
 	} else if (agg=="Division"){
 	
-		cSt <- makeUS_coordinates(root=root,agg="Division")
+		cSt <- makeUS_coordinates(agg="Division")
 
 	} 
 
@@ -509,27 +516,27 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 	if (is.null(agg)){
 
 		State_distMat <- m
-		save(State_distMat,file=file.path(root,"data/State_distMat.RData"))
+		save(State_distMat,file=file.path(getRoot(),"data","State_distMat.RData"))
 
 		State_distTable = data.table(melt(State_distMat))
 		setnames(State_distTable,c("from","to","km"))
-		save(State_distTable,file=file.path(root,"data/State_distTable.RData"))
+		save(State_distTable,file=file.path(getRoot(),"data","State_distTable.RData"))
 
 		return(list(mat=State_distMat,tab=State_distTable))
 
 	} else if (is.list(agg)){
 		State_distMat_agg <- m
-		save(State_distMat_agg,file=file.path(root,"data/State_distMat_agg.RData"))
+		save(State_distMat_agg,file=file.path(getRoot(),"data","State_distMat_agg.RData"))
 
 		State_distTable_agg = data.table(melt(State_distMat_agg))
 		setnames(State_distTable_agg,c("from","to","km"))
-		save(State_distTable_agg,file=file.path(root,"data/State_distTable_agg.RData"))
+		save(State_distTable_agg,file=file.path(getRoot(),"data","State_distTable_agg.RData"))
 
 		return(list(mat=State_distMat_agg,tab=State_distTable_agg))
 
 	} else if (agg=="Division"){
 		Division_distMat <- m
-		save(Division_distMat,file=file.path(root,"data/Division_distMat.RData"))
+		save(Division_distMat,file=file.path(getRoot(),"data","Division_distMat.RData"))
 		return(m)
 	
 
@@ -541,7 +548,7 @@ makeUS_distance <- function(root="~/git/EconData",agg=NULL){
 #' make Interstate Migration Transition Matrix
 #'
 #' @param root name of package root directory
-makeInterstateMig <- function(root="~/git/EconData"){
+makeInterstateMig <- function(){
 
 	idx <- seq(from=13,to=21,by=2)
 	while (tail(idx,1) < 121) {
@@ -552,14 +559,14 @@ makeInterstateMig <- function(root="~/git/EconData"){
 	idx <- idx[idx<121]
 
 
-	d <- read.xlsx(file=file.path(root,"inst/extdata/census/State_to_State_Migrations_Table_2012.xls"),
+	d <- read.xlsx(file=file.path(getRoot(),"extdata","census","State_to_State_Migrations_Table_2012.xls"),
 				   sheetIndex=1,
 				   rowIndex=c(12:16,18:22,24:28,30:34,36:40,42,43,49:53,55:59,61:65,67:71,73:76),
 				   colIndex=c(1,2,6,10,idx),header=FALSE)
 
 	names(d) <- c("current","pop.current","mig.within",as.character(d[,1]))
 
-	load(file.path(root,"data/US_states.RData"))
+	load(file.path(getRoot(),"data","US_states.RData"))
 	abbr <- US_states[,list(State=tolower(STATE),state)]
 
 	snames <- names(d)
@@ -585,7 +592,7 @@ makeInterstateMig <- function(root="~/git/EconData"){
 	props2 <- w.own
 	state.migration <- list(level=level,props=props,props.with.own=props2)
 
-	save(state.migration,file=file.path(root,"data/Migration.RData"))
+	save(state.migration,file=file.path(getRoot(),"data","Migration.RData"))
 	return(state.migration)
 }
 
@@ -593,15 +600,15 @@ makeInterstateMig <- function(root="~/git/EconData"){
 #' make Homeownership rates by state over time
 #'
 #' @param root directory of package
-makeOwnershipRates <- function(root="~/git/EconData"){
+makeOwnershipRates <- function(){
 	rows <- list(9:59,70:120,131:181,192:242,253:303,314:364,375:425,436:486)
 	years <- 2012:2005
 
 	tabs <- list()
 	for (i in 1:length(years)){
 		cat("reading year",years[i],"\n")
-		tabs[[i]]          <- read.xlsx(file=file.path(root,"inst/extdata/census/tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
-		tmp                <- read.xlsx(file=file.path(root,"inst/extdata/census/tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
+		tabs[[i]]          <- read.xlsx(file=file.path(getRoot(),"extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
+		tmp                <- read.xlsx(file=file.path(getRoot(),"extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
 		tabs[[i]][,1]      <- gsub("\\.+$","",tabs[[i]][,1])
 		tmp[,1]            <- gsub("\\.+$","",tmp[,1])
 		names(tabs[[i]])   <- c("State",paste(years[i]," Q",1:4,sep=""))
@@ -616,7 +623,7 @@ makeOwnershipRates <- function(root="~/git/EconData"){
 	names(tabs) <- paste("y",years,sep="")
 	Ownership <- rbindlist(tabs)
 
-	save(Ownership,file=file.path(root,"data/Ownership.RData"))
+	save(Ownership,file=file.path(getRoot(),"data","Ownership.RData"))
 }
 
 
@@ -630,7 +637,7 @@ makeOwnershipRates <- function(root="~/git/EconData"){
 #' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.xls
 #' http://www.census.gov/popest/data/national/totals/2015/files/NST-EST2015-alldata.csv
 #' where the last two have been manually cleaned in inst/extdata as \code{pop2000.csv} and \code{pop2010.csv}
-makePopulation <- function(root="~/git/EconData"){
+makePopulation <- function(){
 
 	# raw data
 	r = list()
@@ -900,7 +907,7 @@ makePopulation <- function(root="~/git/EconData"){
 	population = population[!state %in% c("AS","GU","PR","VI","West","Midwest","North Central","Northeast","South")]
 	setkey(population,state,year)
 
-	save(population,file=file.path(root,"data/Population.RData"))
+	save(population,file=file.path(getRoot(),"data","Population.RData"))
 
 	return(population)
 }
@@ -912,9 +919,9 @@ makePopulation <- function(root="~/git/EconData"){
 #' \url{http://bea.gov/iTable/iTable.cfm?reqid=70&step=1&isuri=1&acrdn=5}
 # and hand cleaned in as \code{inst/extdata/BEA/BEA-SA1.csv} and \code{inst/extdata/BEA/BEA-SA51.csv}
 # Both tables are in current dollars
-makeBEA_PCincome <- function(root="~/git/EconData"){
+makeBEA_PCincome <- function(){
 
-	p = read.csv("inst/extdata/BEA/BEA-SA1.csv",skip=4,header=TRUE,na.strings="(NA)")
+	p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SA1.csv"),skip=4,header=TRUE,na.strings="(NA)")
 
 	p = p[,-1]
 	names(p)[1] <- c("state")
@@ -934,7 +941,7 @@ makeBEA_PCincome <- function(root="~/git/EconData"){
 	pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
 	
 	# do same for per capita disposable income
-	p = read.csv("inst/extdata/BEA/BEA-SA51.csv",skip=4,header=TRUE,na.strings="(NA)")
+	p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SA51.csv"),skip=4,header=TRUE,na.strings="(NA)")
 	p = p[,-1]
 	names(p)[1] <- c("state")
 	names(p)[-1] <- gsub("X","",names(p)[-1])
@@ -952,7 +959,8 @@ makeBEA_PCincome <- function(root="~/git/EconData"){
 	p[,STATE := NULL]
 	dispo_income_current = p[!state %in% c("AS","GU","PR","VI")]
 
-	save(pers_income_current,dispo_income_current,file=file.path(root,"data/PC_Income.RData"))
+	save(pers_income_current,file=file.path(getRoot(),"data","pers_income_current.RData"))
+	save(dispo_income_current,file=file.path(getRoot(),"data","dispo_income_current.RData"))
 	return(list(pers_income_current,dispo_income_current))
 
 
@@ -966,7 +974,7 @@ makeBEA_PCincome <- function(root="~/git/EconData"){
 # these are thousands of current dollars
 makeBEAincome <- function(root="~/git/EconData"){
   
-  p = read.csv("inst/extdata/BEA/BEA-SQ1.csv",skip=4,header=TRUE,na.strings="(NA)")
+  p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SQ1.csv"),skip=4,header=TRUE,na.strings="(NA)")
   p = p[,-1]
   names(p)[1] <- c("state")
   names(p)[-1] <- as.yearqtr(gsub("X","",names(p)[-1]),format="%YQ%q")
@@ -984,9 +992,9 @@ makeBEAincome <- function(root="~/git/EconData"){
   setkey(US_states,STATE)
   p = p[US_states]
   p[,STATE := NULL]
-  pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
+  pers_income = p[!state %in% c("AS","GU","PR","VI")]
   
-  save(pers_income_current,file=file.path(root,"data/PersonalIncome.RData"))
+  save(pers_income,file=file.path(getRoot(),"data","PersonalIncome.RData"))
 }
 
 
@@ -999,7 +1007,7 @@ makeBEAincome <- function(root="~/git/EconData"){
 #' getUS_inflation(idx="1996 Q3",freq="quarterly")
 #' getUS_inflation(idx="1996",freq="yearly")
 getUS_inflation <- function(idx="2012 Q1",freq="quarterly"){
-  data(CPIAUCSL,package="EconData",envir=environment())
+  load(CPIAUCSL,file=file.path(getRoot(),"data","CPIAUCSL.RData"))
   cpi <- CPIAUCSL
   if (freq=="quarterly"){
     cpi <- to.quarterly(cpi)
@@ -1023,6 +1031,56 @@ getUS_inflation <- function(idx="2012 Q1",freq="quarterly"){
   return(cpi)
 }
 
+
+
+#' Make state panel for bankruptcy filings
+#' @export
+make_bankruptcy <- function(){
+	# bankruptcy by chapter, state and time
+  l = list()
+	l$tot = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="total_nonbusiness filing")
+	l$ch7 = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 7")
+	l$ch7_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 7 filing rate")
+	l$ch13 = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 13 filings")
+	l$ch13_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 13 filing rate")
+	l$fore_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="foreclosure start rate")
+	l$fore_rate$V52 <- NULL
+	l$pop_count = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="resident population")
+
+	
+	# fix names
+	n <- lapply(l,names)
+	n$fore_rate <- gsub("L14F@MBAMTG","",n$fore_rate)
+	n$tot <- gsub("NB@BANKRUPT","",n$tot)
+	n$ch7 <- gsub("NB7@BANKRUPT","",n$ch7)
+	n$ch13 <- gsub("NB3@BANKRUPT","",n$ch13)
+	n$ch13_rate <- n$ch13
+	n$ch7_rate <- n$ch7
+	n$pop_count <- gsub("RBT@USPOP","",n$pop_count)
+	
+	# change names, drop first row, convert to numeric
+	for (nn in names(l)){
+	  names(l[[nn]]) <- n[[nn]]
+	  l[[nn]] <- l[[nn]][-1, ]
+	  names(l[[nn]])[1] <- "year"
+	  l[[nn]] <- as.data.frame(sapply(l[[nn]],as.numeric))
+	}
+	m <- lapply(l,function(x){melt(x,id.vars=c("year"),variable.name = "state")})
+	
+	# save
+	ABI_tot       = l$tot
+	ABI_ch7       = l$ch7
+	ABI_ch13      = l$ch13
+	ABI_ch7_rate  = l$ch7_rate
+	ABI_ch13_rate = l$ch13_rate
+	ABI_fore_rate = l$fore_rate
+	save(ABI_tot,file=file.path(getRoot(),"data","ABI_tot.RData"))
+	save(ABI_ch7      ,file=file.path(getRoot(),"data","ABI_ch7.RData"))
+	save(ABI_ch13     ,file=file.path(getRoot(),"data","ABI_ch13.RData"))
+	save(ABI_ch7_rate ,file=file.path(getRoot(),"data","ABI_ch7_rate.RData"))
+	save(ABI_ch13_rate,file=file.path(getRoot(),"data","ABI_ch13_rate.RData"))
+	save(ABI_fore_rate,file=file.path(getRoot(),"data","ABI_fore_rate.RData"))
+}
 
 
 

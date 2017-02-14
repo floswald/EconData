@@ -2,6 +2,7 @@
 
 export(getUS_inflation)
 export(makeAllData)
+export(make_bankruptcy)
 import(XML)
 import(data.table)
 import(reshape2)
