@@ -4,7 +4,7 @@
 \alias{makeInterstateMig}
 \title{make Interstate Migration Transition Matrix}
 \usage{
-makeInterstateMig(root = "~/git/EconData")
+makeInterstateMig()
 }
 \arguments{
 \item{root}{name of package root directory}

@@ -4,7 +4,7 @@
 \alias{makeBEA_PCincome}
 \title{Per Capita annual personal income and per capita disposable income by state for 1949-now}
 \usage{
-makeBEA_PCincome(root = "~/git/EconData")
+makeBEA_PCincome()
 }
 \description{
 data obtained from query to \url{http://bea.gov/iTable}, and

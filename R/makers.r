@@ -9,9 +9,10 @@
 
 
 #' get package root
-#'
-getRoot <- function(){
-	return(system.file(package="EconData"))
+#' 
+#' @param your_root where you develop this package.
+getRoot <- function(your_root="~/git/EconData"){
+	return(your_root)
 }
 
 #' make all datasets
@@ -37,6 +38,7 @@ makeAllData <- function(){
 	makeOwnershipRates()
 	makeBEAincome()
 	makeBEA_PCincome()
+  make_bankruptcy()
 	
 	#cat("building population counts, may take a little.\n")
 	#makePopulation()
@@ -124,7 +126,7 @@ makeAbbreviations <- function(){
 	states[STATE=="HAWAII",                PSID := 51]
 	setkey(states,FIPS)
 
-	st <- data.table(read.xlsx(file=file.path(getRoot(),"extdata","census","state_geocodes_v2011.xls"),sheetIndex=2))
+	st <- data.table(read.xlsx(file=file.path(getRoot(),"inst","extdata","census","state_geocodes_v2011.xls"),sheetIndex=2))
 	st[, c("Reg_ID","Div_ID","FIPS") := lapply(st[,list(Reg_ID,Div_ID,FIPS)], function(x) as.numeric(as.character(x)))]
 	st[, c("Region","Division","State") := lapply(st[,list(Region,Division,State)], function(x) as.character(x))]
 
@@ -176,7 +178,7 @@ makeMedianIncome <- function(){
 	# current dollars
 	rows <- 8:59
 
-	current <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	current <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(current$inc) <- c("State",paste0(yrs))
 	names(current$se) <- c("State",paste0(yrs))
 
@@ -209,7 +211,7 @@ makeMedianIncome <- function(){
 	# 2012 dollars
 	rows <- rows + 53
 
-	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(in2012$inc) <- c("State",paste0(yrs))
 	names(in2012$se) <- c("State",paste0(yrs))
 
@@ -316,7 +318,7 @@ makeFHFA <- function(){
 #' @references \url{https://www.lincolninst.edu/subcenters/land-values/}
 makeLincolnHomeValues <- function(){
 
-	d <- fread(input=file.path(getRoot(),"extdata","lincolninst","landdata-states-2013q1.csv"),skip=1)
+	d <- fread(input=file.path(getRoot(),"inst","extdata","lincolninst","landdata-states-2013q1.csv"),skip=1)
 	d[,qtr := as.yearqtr(Date)]
 	d[,Date := NULL]
 	setnames(d,c("State","Home.Value","Structure.Cost","Land.Value","Land.Share","Home.Price.Index","Land.Price.Index","qtr"))
@@ -372,7 +374,7 @@ makeMORTGAGE30US <- function(){
 #' use the haversine formula to compute distance
 #' between 2 locations
 #'
-#' @reference: \url{http://www.r-bloggers.com/great-circle-distance-calculations-in-r/}
+#' @references \url{http://www.r-bloggers.com/great-circle-distance-calculations-in-r/}
 gcd.hf <- function(long1, lat1, long2, lat2) {
   R <- 6371 # Earth mean radius [km]
   delta.long <- (long2 - long1)
@@ -559,7 +561,7 @@ makeInterstateMig <- function(){
 	idx <- idx[idx<121]
 
 
-	d <- read.xlsx(file=file.path(getRoot(),"extdata","census","State_to_State_Migrations_Table_2012.xls"),
+	d <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","State_to_State_Migrations_Table_2012.xls"),
 				   sheetIndex=1,
 				   rowIndex=c(12:16,18:22,24:28,30:34,36:40,42,43,49:53,55:59,61:65,67:71,73:76),
 				   colIndex=c(1,2,6,10,idx),header=FALSE)
@@ -607,8 +609,8 @@ makeOwnershipRates <- function(){
 	tabs <- list()
 	for (i in 1:length(years)){
 		cat("reading year",years[i],"\n")
-		tabs[[i]]          <- read.xlsx(file=file.path(getRoot(),"extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
-		tmp                <- read.xlsx(file=file.path(getRoot(),"extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
+		tabs[[i]]          <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
+		tmp                <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
 		tabs[[i]][,1]      <- gsub("\\.+$","",tabs[[i]][,1])
 		tmp[,1]            <- gsub("\\.+$","",tmp[,1])
 		names(tabs[[i]])   <- c("State",paste(years[i]," Q",1:4,sep=""))
@@ -921,7 +923,7 @@ makePopulation <- function(){
 # Both tables are in current dollars
 makeBEA_PCincome <- function(){
 
-	p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SA1.csv"),skip=4,header=TRUE,na.strings="(NA)")
+	p = read.csv(file.path(getRoot(),"inst","extdata","BEA","BEA-SA1.csv"),skip=4,header=TRUE,na.strings="(NA)")
 
 	p = p[,-1]
 	names(p)[1] <- c("state")
@@ -941,7 +943,7 @@ makeBEA_PCincome <- function(){
 	pers_income_current = p[!state %in% c("AS","GU","PR","VI")]
 	
 	# do same for per capita disposable income
-	p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SA51.csv"),skip=4,header=TRUE,na.strings="(NA)")
+	p = read.csv(file.path(getRoot(),"inst","extdata","BEA","BEA-SA51.csv"),skip=4,header=TRUE,na.strings="(NA)")
 	p = p[,-1]
 	names(p)[1] <- c("state")
 	names(p)[-1] <- gsub("X","",names(p)[-1])
@@ -972,9 +974,9 @@ makeBEA_PCincome <- function(){
 #' \url{http://www.bea.gov/iTable/iTableHtml.cfm?reqid=70&step=30&isuri=1&7022=36&7023=0&7033=-1&7024=non-industry&7025=0&7026=xx&7027=-1&7001=336&7028=10&7031=0&7040=-1&7083=levels&7029=36&7090=70}
 # and hand cleaned in as \code{inst/extdata/BEA/personal_income.csv}
 # these are thousands of current dollars
-makeBEAincome <- function(root="~/git/EconData"){
+makeBEAincome <- function(){
   
-  p = read.csv(file.path(getRoot(),"extdata","BEA","BEA-SQ1.csv"),skip=4,header=TRUE,na.strings="(NA)")
+  p = read.csv(file.path(getRoot(),"inst","extdata","BEA","BEA-SQ1.csv"),skip=4,header=TRUE,na.strings="(NA)")
   p = p[,-1]
   names(p)[1] <- c("state")
   names(p)[-1] <- as.yearqtr(gsub("X","",names(p)[-1]),format="%YQ%q")
@@ -1038,14 +1040,14 @@ getUS_inflation <- function(idx="2012 Q1",freq="quarterly"){
 make_bankruptcy <- function(){
 	# bankruptcy by chapter, state and time
   l = list()
-	l$tot = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="total_nonbusiness filing")
-	l$ch7 = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 7")
-	l$ch7_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 7 filing rate")
-	l$ch13 = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 13 filings")
-	l$ch13_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 13 filing rate")
-	l$fore_rate = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="foreclosure start rate")
+	l$tot = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="total_nonbusiness filing")
+	l$ch7 = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 7")
+	l$ch7_rate = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chap 7 filing rate")
+	l$ch13 = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter13 filings")
+	l$ch13_rate = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="chapter 13 filing rate")
+	l$fore_rate = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="foreclosure start rate")
 	l$fore_rate$V52 <- NULL
-	l$pop_count = read_excel(file.path(getRoot(),"extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="resident population")
+	l$pop_count = read_excel(file.path(getRoot(),"inst","extdata","AmericanBankruptcyInstitute","state_bankruptcy_foreclosure.xlsx"),sheet="resident population")
 
 	
 	# fix names
@@ -1073,13 +1075,20 @@ make_bankruptcy <- function(){
 	ABI_ch13      = l$ch13
 	ABI_ch7_rate  = l$ch7_rate
 	ABI_ch13_rate = l$ch13_rate
-	ABI_fore_rate = l$fore_rate
+	MBA_fore_rate = l$fore_rate
+	Fed_pop_count = l$pop_count
+	MBA_fore_rate$V52 <- NULL
+	
+	cat("saving now bk\n")
+	
 	save(ABI_tot,file=file.path(getRoot(),"data","ABI_tot.RData"))
 	save(ABI_ch7      ,file=file.path(getRoot(),"data","ABI_ch7.RData"))
 	save(ABI_ch13     ,file=file.path(getRoot(),"data","ABI_ch13.RData"))
 	save(ABI_ch7_rate ,file=file.path(getRoot(),"data","ABI_ch7_rate.RData"))
 	save(ABI_ch13_rate,file=file.path(getRoot(),"data","ABI_ch13_rate.RData"))
-	save(ABI_fore_rate,file=file.path(getRoot(),"data","ABI_fore_rate.RData"))
+	save(MBA_fore_rate,file=file.path(getRoot(),"data","MBA_fore_rate.RData"))
+	save(Fed_pop_count,file=file.path(getRoot(),"data","Fed_pop_count.RData"))
+	
 }
 
 

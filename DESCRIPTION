@@ -14,15 +14,15 @@ URL: https://github.com/floswald/EconData
 Imports:
     reshape2,
     XML,
-    xlsx,
-    readxl
+    xlsx
 Depends:
     zoo,
     quantmod,
     data.table,
     stringr,
     RCurl,
-    reshape2
+    reshape2,
+    readxl
 Collate:
     'makers.r'
     'EconData-package.R'
@@ -41,4 +41,5 @@ Collate:
     'doc_Migration.r'
     'doc_ownership.r'
     'doc_mortgage.r'
+    'doc_bankruptcy.r'
 RoxygenNote: 5.0.1

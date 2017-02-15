@@ -4,10 +4,7 @@
 \alias{makeLincolnHomeValues}
 \title{make Lincoln Institute Home and Land Value Dataset}
 \usage{
-makeLincolnHomeValues(root = "~/git/EconData")
-}
-\arguments{
-\item{root}{path/to/your/package/root}
+makeLincolnHomeValues()
 }
 \value{
 NULL.

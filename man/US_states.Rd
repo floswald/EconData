@@ -3,7 +3,7 @@
 \docType{data}
 \name{US_states}
 \alias{US_states}
-\title{Correspondance of US State with FIPS code, Census Region and Division}
+\title{Crosswalk of US State FIPS, Census Region and Division with PSID codes}
 \format{long data.table}
 \source{
 \url{http://www.epa.gov/enviro/html/codes/state.html}, \url{http://www.census.gov/popest/about/geo/codes.html}
@@ -12,8 +12,8 @@
 data(US_states)
 }
 \description{
-produces a data.table with state names and FIPS 
-abbreviations. Also includes census region and division.
+produces a data.table with state names, FIPS 
+abbreviations. Also includes census region and division and PSID state code.
 
 you will most likely want to merge this table into some 
 dataset you come across and which is missing full state names,

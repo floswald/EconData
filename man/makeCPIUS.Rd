@@ -4,19 +4,23 @@
 \alias{makeCPIUS}
 \title{make several US inflation datasets}
 \usage{
-makeCPIUS(root = "~/git/EconData")
+makeCPIUS()
 }
 \description{
+download data from FRED with quantmod package
+}
+\details{
 saves cpi for all urban consumers 
-and housing cpi  to disk
+and housing cpi to disk
 }
 \references{
 \url{http://research.stlouisfed.org/fred2/series/CPIAUCSL} 
             \url{http://research.stlouisfed.org/fred2/series/CPIHOSSL} 
-            \url{http://research.stlouisfed.org/fred2/series/USSTHPI} 
-download data from FRED with quantmod package
+            \url{http://research.stlouisfed.org/fred2/series/USSTHPI}
 }
 \seealso{
+Other FREDs: \code{\link{makeMORTGAGE30US}}
+
 Other makers: \code{\link{makeAbbreviations}},
   \code{\link{makeAllData}}, \code{\link{makeFHFA}},
   \code{\link{makeLincolnHomeValues}},

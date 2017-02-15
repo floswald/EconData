@@ -4,9 +4,9 @@
 
 
 #' @name US_states
-#' @title Correspondance of US State with FIPS code, Census Region and Division 
-#' @description produces a data.table with state names and FIPS 
-#' abbreviations. Also includes census region and division.
+#' @title Crosswalk of US State FIPS, Census Region and Division with PSID codes
+#' @description produces a data.table with state names, FIPS 
+#' abbreviations. Also includes census region and division and PSID state code.
 #'
 #' you will most likely want to merge this table into some 
 #' dataset you come across and which is missing full state names,

@@ -4,7 +4,7 @@
 \alias{makeUS_coordinates}
 \title{make Coordinate of US State centers}
 \usage{
-makeUS_coordinates(root = "~/git/EconData", agg = NULL)
+makeUS_coordinates(agg = NULL)
 }
 \arguments{
 \item{agg}{list of character vectors of state abbreviations that should be aggregated into one location}

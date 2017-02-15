@@ -4,10 +4,7 @@
 \alias{makeFHFA}
 \title{make FHFA expanded house price indices}
 \usage{
-makeFHFA(root = "~/git/EconData")
-}
-\arguments{
-\item{root}{path/to/your/package/root}
+makeFHFA()
 }
 \value{
 NULL.

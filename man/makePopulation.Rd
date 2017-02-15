@@ -4,7 +4,7 @@
 \alias{makePopulation}
 \title{Census Population Count by state for 1948-2012}
 \usage{
-makePopulation(root = "~/git/EconData")
+makePopulation()
 }
 \description{
 takes data from US census bureau intercensal 

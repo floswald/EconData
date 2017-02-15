@@ -4,7 +4,7 @@
 \alias{makeUS_distance}
 \title{make Distance between US state centers}
 \usage{
-makeUS_distance(root = "~/git/EconData", agg = NULL)
+makeUS_distance(agg = NULL)
 }
 \arguments{
 \item{agg}{list of character vectors of state abbreviations that should be aggregated into one location}

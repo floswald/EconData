@@ -4,7 +4,7 @@
 \alias{makeBEAincome}
 \title{Get BEA annual personal income by state for 1949-now}
 \usage{
-makeBEAincome(root = "~/git/EconData")
+makeBEAincome()
 }
 \description{
 data obtained from query to

@@ -2,12 +2,9 @@
 % Please edit documentation in R/makers.r
 \name{makeMedianIncome}
 \alias{makeMedianIncome}
-\title{make dataset of median income by state and year}
+\title{make dataset of median income by US state and year}
 \usage{
-makeMedianIncome(root = "~/git/EconData")
-}
-\arguments{
-\item{root}{path/to/your/package/root}
+makeMedianIncome()
 }
 \value{
 NULL.
@@ -23,7 +20,7 @@ with elements zinc, zse, incl, sel. Those elements are
 \item zinc: a zoo object of median income
 \item zse: a zoo object of it's standard error
 \item incl: data.frame with median income in long format
-\item sel: data.frame with median income in long format
+\item sel: data.frame with standard error of median income in long format
 }
 
 source: census bureau

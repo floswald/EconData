@@ -4,15 +4,13 @@
 \alias{makeAbbreviations}
 \title{makes Correspondance of US State with FIPS code, Census Region and Division}
 \usage{
-makeAbbreviations(root = "~/git/EconData")
+makeAbbreviations()
 }
 \arguments{
-\item{root}{path/to/your/package/root}
-
 \item{url}{https://www.census.gov/geo/reference/ansi_statetables.html}
 }
 \value{
-NULL. saves data to packageroot/data
+NULL. saves data to data/
 }
 \description{
 produces a data.table with state names and FIPS 

@@ -4,7 +4,7 @@
 \alias{makeMORTGAGE30US}
 \title{make 30 year FRM rates dataset}
 \usage{
-makeMORTGAGE30US(root = "~/git/EconData")
+makeMORTGAGE30US()
 }
 \description{
 saves the Freddie Mac 30 year FRM index
@@ -15,6 +15,8 @@ to disk
 download data from FRED with quantmod package
 }
 \seealso{
+Other FREDs: \code{\link{makeCPIUS}}
+
 Other makers: \code{\link{makeAbbreviations}},
   \code{\link{makeAllData}}, \code{\link{makeCPIUS}},
   \code{\link{makeFHFA}},
