@@ -1009,7 +1009,7 @@ makeBEAincome <- function(){
 #' getUS_inflation(idx="1996 Q3",freq="quarterly")
 #' getUS_inflation(idx="1996",freq="yearly")
 getUS_inflation <- function(idx="2012 Q1",freq="quarterly"){
-  load(CPIAUCSL,file=file.path(getRoot(),"data","CPIAUCSL.RData"))
+  data(CPIAUCSL,package="EconData",envir = environment())
   cpi <- CPIAUCSL
   if (freq=="quarterly"){
     cpi <- to.quarterly(cpi)
