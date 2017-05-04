@@ -43,6 +43,7 @@ makeAllData <- function(){
 	#cat("building population counts, may take a little.\n")
 	#makePopulation()
 	cat("Done.\n")
+	cat(paste0("You should now devtools:::install(",getRoot(),")\n"))
 	
 	return(TRUE)
 }
