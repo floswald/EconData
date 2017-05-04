@@ -12,9 +12,7 @@ Description: This package ships with a suite of datasets that I needed in
 License: GPL-3
 URL: https://github.com/floswald/EconData
 Imports:
-    reshape2,
-    XML,
-    xlsx
+    reshape2
 Depends:
     zoo,
     quantmod,

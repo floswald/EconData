@@ -38,11 +38,12 @@ makeAllData <- function(){
 	makeOwnershipRates()
 	makeBEAincome()
 	makeBEA_PCincome()
-  make_bankruptcy()
+    make_bankruptcy()
 	
 	#cat("building population counts, may take a little.\n")
 	#makePopulation()
 	cat("Done.\n")
+	cat(paste0("You should now devtools:::install(",getRoot(),")\n"))
 	
 	return(TRUE)
 }
@@ -126,7 +127,7 @@ makeAbbreviations <- function(){
 	states[STATE=="HAWAII",                PSID := 51]
 	setkey(states,FIPS)
 
-	st <- data.table(read.xlsx(file=file.path(getRoot(),"inst","extdata","census","state_geocodes_v2011.xls"),sheetIndex=2))
+	st <- data.table(read_excel(file.path(getRoot(),"inst","extdata","census","state_geocodes_v2011.xls"),sheet=2))
 	st[, c("Reg_ID","Div_ID","FIPS") := lapply(st[,list(Reg_ID,Div_ID,FIPS)], function(x) as.numeric(as.character(x)))]
 	st[, c("Region","Division","State") := lapply(st[,list(Region,Division,State)], function(x) as.character(x))]
 
@@ -178,7 +179,10 @@ makeMedianIncome <- function(){
 	# current dollars
 	rows <- 8:59
 
-	current <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	current = list()
+	tmp <- read_excel(file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheet=1,range = cell_limits(c(8,1),c(59,60)),col_names=FALSE)
+	current$inc <- tmp[,cols$inc]
+	current$se  <- tmp[,cols$se]
 	names(current$inc) <- c("State",paste0(yrs))
 	names(current$se) <- c("State",paste0(yrs))
 
@@ -211,7 +215,7 @@ makeMedianIncome <- function(){
 	# 2012 dollars
 	rows <- rows + 53
 
-	in2012 <- lapply(cols,function(x) read.xlsx(file=file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheetIndex=1,rowIndex=rows,colIndex=x,header=FALSE))
+	in2012 <- lapply(cols,function(x) read_excel(file=file.path(getRoot(),"inst","extdata","census","H08_2012.xls"),sheet=1,rowIndex=rows,colIndex=x,header=FALSE))
 	names(in2012$inc) <- c("State",paste0(yrs))
 	names(in2012$se) <- c("State",paste0(yrs))
 
@@ -240,7 +244,7 @@ makeMedianIncome <- function(){
 	medinc_2012 <- in2012
 
 	# Census Region level medians in current
-# 	reg <- read.xlsx(file=file.path(root,"inst/extdata/census/H06AR_2011.xls"),sheetIndex=1,rowIndex=c(7:43,45:81,83:119,121:157,159:195),colIndex=3,header=FALSE)
+# 	reg <- read_excel(file=file.path(root,"inst/extdata/census/H06AR_2011.xls"),sheet=1,rowIndex=c(7:43,45:81,83:119,121:157,159:195),colIndex=3,header=FALSE)
 # 	reg$year <- c(rep(2011:1975,5))
 # 	reg$region <- c(rep("USA",length(2011:1975)),rep("Northeast",length(2011:1975)),rep("Midwest",length(2011:1975)),rep("South",length(2011:1975)),rep("West",length(2011:1975)))
 # 	reg_current = as.data.table(reg)
@@ -561,8 +565,8 @@ makeInterstateMig <- function(){
 	idx <- idx[idx<121]
 
 
-	d <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","State_to_State_Migrations_Table_2012.xls"),
-				   sheetIndex=1,
+	d <- read_excel(file=file.path(getRoot(),"inst","extdata","census","State_to_State_Migrations_Table_2012.xls"),
+				   sheet=1,
 				   rowIndex=c(12:16,18:22,24:28,30:34,36:40,42,43,49:53,55:59,61:65,67:71,73:76),
 				   colIndex=c(1,2,6,10,idx),header=FALSE)
 
@@ -609,8 +613,8 @@ makeOwnershipRates <- function(){
 	tabs <- list()
 	for (i in 1:length(years)){
 		cat("reading year",years[i],"\n")
-		tabs[[i]]          <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
-		tmp                <- read.xlsx(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
+		tabs[[i]]          <- read_excel(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(2,8,by=2)),header=FALSE)
+		tmp                <- read_excel(file=file.path(getRoot(),"inst","extdata","census","tab3_state05_2012_hmr.xls"),sheetName="A",rowIndex=rows[[i]],colIndex=c(1,seq(3,9,by=2)),header=FALSE)
 		tabs[[i]][,1]      <- gsub("\\.+$","",tabs[[i]][,1])
 		tmp[,1]            <- gsub("\\.+$","",tmp[,1])
 		names(tabs[[i]])   <- c("State",paste(years[i]," Q",1:4,sep=""))
@@ -869,7 +873,7 @@ makePopulation <- function(){
 
 	# 2000s
 	#' http://www.census.gov/popest/data/intercensal/state/tables/ST-EST00INT-01.xls
-	tmp <- read.xlsx(file.path(root,"inst/extdata/census/ST-EST00INT-01.xls"),sheetIndex=1,rowIndex = 4:60,colIndex=c(1,3:12),header = TRUE)
+	tmp <- read_excel(file.path(root,"inst/extdata/census/ST-EST00INT-01.xls"),sheet=1,rowIndex = 4:60,colIndex=c(1,3:12),header = TRUE)
 	
 	names(tmp) <- c("state",paste0(2000:2009))
 	tmp$state = gsub("\\.","",tmp$state)
